@@ -118,10 +118,10 @@ const styles = StyleSheet.create({
   },
   deliverable: {
     flexDirection: "row",
-    marginBottom: 3,
+    marginBottom: 6,
   },
   deliverableBullet: { width: 12, color: "#15181D" },
-  deliverableText: { flex: 1 },
+  deliverableText: { flex: 1, fontSize: 9, lineHeight: 1.5 },
   disclaimer: {
     marginTop: 18,
     fontSize: 8,
@@ -170,8 +170,7 @@ const SECTION_TITLE_HEIGHT = 13;
 const META_ROW_HEIGHT = 10;
 const LINE_ITEM_HEIGHT = 18;
 const TOTAL_BOX_HEIGHT = 44;
-const DELIVERABLE_GROUP_HEIGHT = 14;
-const DELIVERABLE_ITEM_HEIGHT = 13;
+const DELIVERABLE_ITEM_HEIGHT = 26;
 const DISCLAIMER_HEIGHT = 24;
 const FOOTER_HEIGHT = 16;
 
@@ -184,12 +183,14 @@ function PdfDeliverablesSection({ deliverableTexts }: { deliverableTexts: string
     <>
       <View style={styles.divider} />
       <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-      {deliverableTexts.map((text, i) => (
-        <View key={i} style={styles.deliverable}>
-          <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-          <Text style={styles.deliverableText}>{text}</Text>
-        </View>
-      ))}
+      <View style={{ marginBottom: 8 }}>
+        {deliverableTexts.map((text, i) => (
+          <View key={i} style={styles.deliverable} wrap={false}>
+            <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+            <Text style={styles.deliverableText}>{text}</Text>
+          </View>
+        ))}
+      </View>
     </>
   );
 }
@@ -299,31 +300,26 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
     }
   }
 
-  // Calculate fixed overhead (header, sections, dividers, total box, disclaimer, footer)
-  const fixedHeight =
+  // Per-page top overhead (header, client details, event details, price breakdown title)
+  const page1Top =
     HEADER_HEIGHT +
-    DIVIDER_HEIGHT +
-    SECTION_TITLE_HEIGHT + // Client details
-    META_ROW_HEIGHT * 2 +
-    (estimatedDateDisplay ? META_ROW_HEIGHT : 0) +
-    DIVIDER_HEIGHT +
-    SECTION_TITLE_HEIGHT + // Event details
-    META_ROW_HEIGHT * 2 +
-    DIVIDER_HEIGHT +
-    SECTION_TITLE_HEIGHT + // Price breakdown
+    DIVIDER_HEIGHT * 3 +
+    SECTION_TITLE_HEIGHT * 3 +
+    META_ROW_HEIGHT * 4 +
+    (estimatedDateDisplay ? META_ROW_HEIGHT : 0);
+
+  // Bottom content that only appears on the last page
+  const lastPageBottom =
     TOTAL_BOX_HEIGHT +
     DISCLAIMER_HEIGHT +
-    FOOTER_HEIGHT;
+    FOOTER_HEIGHT +
+    (deliverableTexts.length > 0
+      ? DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + deliverableTexts.length * DELIVERABLE_ITEM_HEIGHT
+      : 0);
 
   const chunksTotalH = flatChunks.reduce((acc, c) => acc + chunkHeight(c), 0);
 
-  const deliverableTextsHeight = deliverableTexts.length * DELIVERABLE_ITEM_HEIGHT;
-
-  const delivOverhead = deliverableTexts.length > 0
-    ? DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + deliverableTextsHeight
-    : 0;
-
-  const totalNeeded = fixedHeight + chunksTotalH + delivOverhead;
+  const totalNeeded = page1Top + chunksTotalH + lastPageBottom;
   const fitsOnePage = totalNeeded <= AVAILABLE_HEIGHT;
 
   let page1Chunks: PdfChunk[];
@@ -338,7 +334,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
     needsSecondPage = false;
   } else {
     // Not everything fits — split: fill page 1, remainder on page 2+
-    const availableP1 = AVAILABLE_HEIGHT - fixedHeight - delivOverhead;
+    const availableP1 = AVAILABLE_HEIGHT - page1Top;
     page1Chunks = [];
     const rest: PdfChunk[] = [];
     let used = 0;
@@ -357,7 +353,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
 
     // Page 2: "Price breakdown (continued)" + remaining chunks + bottom content
     const page2Top = SECTION_TITLE_HEIGHT;
-    const page2Bottom = TOTAL_BOX_HEIGHT + DISCLAIMER_HEIGHT + FOOTER_HEIGHT + delivOverhead;
+    const page2Bottom = lastPageBottom;
     const availableP2 = AVAILABLE_HEIGHT - page2Top - page2Bottom;
 
     const continued = withContinuationHeadings(rest, page1Chunks);
