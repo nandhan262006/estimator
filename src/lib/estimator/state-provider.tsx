@@ -17,7 +17,11 @@ import type {
   SubEventDeliverable,
 } from "./types";
 import { calculateEstimate } from "./pricing";
-import { generateDeliverables, generateSubEventDeliverables } from "./deliverables";
+import {
+  generateDeliverables,
+  generateDeliverableTexts,
+  generateSubEventDeliverables,
+} from "./deliverables";
 import { evaluateRecommendations } from "./recommendations";
 import {
   estimatorReducer,
@@ -40,6 +44,7 @@ interface EstimatorContextValue {
   estimate: EstimateBreakdown;
   deliverables: DeliverableGroup[];
   subEventDeliverables: SubEventDeliverable[];
+  deliverableTexts: string[];
   recommendations: ActiveRecommendation[];
 }
 
@@ -74,6 +79,11 @@ export function EstimatorProvider({
     [state, template],
   );
 
+  const deliverableTexts = useMemo(
+    () => (template ? generateDeliverableTexts(state, template) : []),
+    [state, template],
+  );
+
   const recommendations = useMemo(
     () => (template ? evaluateRecommendations(state, template) : []),
     [state, template],
@@ -97,9 +107,10 @@ export function EstimatorProvider({
       estimate,
       deliverables,
       subEventDeliverables,
+      deliverableTexts,
       recommendations,
     }),
-    [state, dispatch, templates, template, estimate, deliverables, subEventDeliverables, recommendations],
+    [state, dispatch, templates, template, estimate, deliverables, subEventDeliverables, deliverableTexts, recommendations],
   );
 
   return (

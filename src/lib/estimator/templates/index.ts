@@ -4,6 +4,7 @@ import { eventTemplate, subEvent } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
 import {
   deliverableRulesFor,
+  weddingDeliverableRules,
   commonRecommendations,
   ALBUM_DEFAULTS,
   DEFAULT_COVERAGE_PRICES,
@@ -80,6 +81,25 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
 
       const templateSubEvents = allSubEvents.filter((se) => se.templateId === t.id);
 
+      const subEventDefs = templateSubEvents.map((se) => {
+        const overrides: Record<string, unknown> = safeJson<Record<string, unknown>>(se.priceOverrides) ?? {};
+        return {
+          id: se.subEventId,
+          name: se.name,
+          description: se.description || undefined,
+          defaultSelected: Boolean(se.defaultSelected),
+          maxReels: se.maxReels ?? undefined,
+          coverage: overrides.coverage as unknown as Partial<Record<ID, PriceRange>> | undefined,
+          addOns: overrides.addOns as unknown as Partial<Record<ID, PriceRange>> | undefined,
+          reel: overrides.reel as unknown as PriceRange | undefined,
+        };
+      });
+
+      const templateDeliverableRules =
+        t.typeId === "wedding"
+          ? weddingDeliverableRules(subEventDefs, coverageOptions, addOnOptions)
+          : deliverableRulesFor(coverageOptions, addOnOptions);
+
       return {
         id: t.typeId,
         name: t.name,
@@ -92,21 +112,9 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         defaultAddOnPrices: mergedAddOns,
         defaultReelPrice: { value: t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
-        subEvents: templateSubEvents.map((se) => {
-          const overrides: Record<string, unknown> = safeJson<Record<string, unknown>>(se.priceOverrides) ?? {};
-          return {
-            id: se.subEventId,
-            name: se.name,
-            description: se.description || undefined,
-            defaultSelected: Boolean(se.defaultSelected),
-            maxReels: se.maxReels ?? undefined,
-            coverage: overrides.coverage as unknown as Partial<Record<ID, PriceRange>> | undefined,
-            addOns: overrides.addOns as unknown as Partial<Record<ID, PriceRange>> | undefined,
-            reel: overrides.reel as unknown as PriceRange | undefined,
-          };
-        }),
+        subEvents: subEventDefs,
         album: ALBUM_DEFAULTS,
-        deliverableRules: deliverableRulesFor(coverageOptions, addOnOptions),
+        deliverableRules: templateDeliverableRules,
         recommendationRules: commonRecommendations(),
       };
     });
@@ -120,18 +128,26 @@ function safeJson<T>(val: string): T | null {
 }
 
 function applyZeroPriceFilter(t: EventTemplate): EventTemplate {
+  const filteredCoverage = t.coverageOptions.filter(
+    (id) => t.defaultCoveragePrices[id]?.value !== 0
+  );
+  const filteredAddOns = t.addOnOptions.filter(
+    (id) => t.defaultAddOnPrices[id]?.value !== 0
+  );
+
   return {
     ...t,
-    coverageOptions: t.coverageOptions.filter(
-      (id) => t.defaultCoveragePrices[id]?.value !== 0
-    ),
-    addOnOptions: t.addOnOptions.filter(
-      (id) => t.defaultAddOnPrices[id]?.value !== 0
-    ),
-    deliverableRules: deliverableRulesFor(
-      t.coverageOptions.filter((id) => t.defaultCoveragePrices[id]?.value !== 0),
-      t.addOnOptions.filter((id) => t.defaultAddOnPrices[id]?.value !== 0),
-    ),
+    coverageOptions: filteredCoverage,
+    addOnOptions: filteredAddOns,
+    deliverableRules: t.deliverableRules.filter((rule) => {
+      if (rule.when.coverage) {
+        return rule.when.coverage.some((covId) => filteredCoverage.includes(covId));
+      }
+      if (rule.when.addOns) {
+        return rule.when.addOns.some((addonId) => filteredAddOns.includes(addonId));
+      }
+      return true;
+    }),
   };
 }
 

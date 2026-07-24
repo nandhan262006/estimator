@@ -95,6 +95,10 @@ export interface DeliverableRule {
     reels?: boolean;
     /** Emit if an album is configured. */
     album?: boolean;
+    /** Limit to only these sub-event ids (if omitted, applies across all). */
+    subEvents?: ID[];
+    /** Emit once across all sub-events when any sub-event matches. */
+    global?: boolean;
   };
   produce: {
     group: string;

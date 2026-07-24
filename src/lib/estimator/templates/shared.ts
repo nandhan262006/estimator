@@ -4,6 +4,7 @@ import type {
   ID,
   PriceRange,
   RecommendationRule,
+  SubEventDef,
 } from "../types";
 
 export const DEFAULT_MAX_REELS = 3;
@@ -64,11 +65,11 @@ export const ALBUM_DEFAULTS: AlbumDefaults = {
 };
 
 const COVERAGE_DELIVERABLE_LABELS: Record<ID, string> = {
-  traditional_photography: "Traditional photography coverage (edited soft copy)",
-  traditional_videography: "Full event traditional video footage",
-  candid_photography: "Curated & edited candid photographs (soft copy)",
-  cinematic_videography: "Cinematic highlight film + full event film",
-  drone: "Aerial drone footage (compiled reel)",
+  traditional_photography: "Traditional Photography coverage (digitally edited soft copies)",
+  traditional_videography: "Traditional Videography with documentary-style edited footage",
+  candid_photography: "Curated & edited candid photographs (digital soft copies)",
+  cinematic_videography: "Cinematic highlight film",
+  drone: "Aerial Drone coverage (compiled reel)",
 };
 
 const ADDON_DELIVERABLE_LABELS: Record<ID, string> = {
@@ -82,15 +83,53 @@ const DELIVERABLE_GROUP_COVERAGE = "Photography & Videography";
 const DELIVERABLE_GROUP_ADDONS = "Add-on Services";
 const DELIVERABLE_GROUP_EXTRAS = "Reels & Albums";
 
+const CINEMATIC_EVENT_LABELS: Record<ID, string> = {
+  engagement: "A Cinematic Engagement Trailer",
+  wedding: "A Cinematic Wedding Film",
+  reception: "A Cinematic Reception Film",
+};
+
 export function deliverableRulesFor(
   coverageIds: ID[],
   addonIds: ID[],
 ): DeliverableRule[] {
   const rules: DeliverableRule[] = [];
 
+  const hasAnyPhotography = coverageIds.some(
+    (id) => id === "traditional_photography" || id === "candid_photography",
+  );
+  const hasAnyVideography = coverageIds.some(
+    (id) => id === "traditional_videography" || id === "cinematic_videography",
+  );
+
+  if (hasAnyPhotography) {
+    rules.push({
+      id: "deliv-photos-global",
+      when: { coverage: ["traditional_photography", "candid_photography"], global: true },
+      produce: {
+        group: DELIVERABLE_GROUP_COVERAGE,
+        label: "Highlighted photographs from all selected events.",
+      },
+    });
+  }
+
+  if (hasAnyVideography) {
+    rules.push({
+      id: "deliv-videos-global",
+      when: { coverage: ["traditional_videography", "cinematic_videography"], global: true },
+      produce: {
+        group: DELIVERABLE_GROUP_COVERAGE,
+        label: "Edited documentary-style videos of all selected events.",
+      },
+    });
+  }
+
   for (const id of coverageIds) {
     const label = COVERAGE_DELIVERABLE_LABELS[id];
     if (!label) continue;
+    if (id === "traditional_photography" || id === "candid_photography") continue;
+    if (id === "traditional_videography") continue;
+    if (id === "cinematic_videography") continue;
     rules.push({
       id: `deliv-coverage-${id}`,
       when: { coverage: [id] },
@@ -132,6 +171,95 @@ export function deliverableRulesFor(
       group: DELIVERABLE_GROUP_EXTRAS,
       label: "Premium printed album(s)",
     },
+  });
+
+  return rules;
+}
+
+export function weddingDeliverableRules(
+  subEvents: SubEventDef[],
+  coverageIds: ID[],
+  addonIds: ID[],
+): DeliverableRule[] {
+  const rules: DeliverableRule[] = [];
+
+  const hasAnyPhotography = coverageIds.some(
+    (id) => id === "traditional_photography" || id === "candid_photography",
+  );
+  const hasAnyVideography = coverageIds.some(
+    (id) => id === "traditional_videography" || id === "cinematic_videography",
+  );
+  const hasCinematic = coverageIds.includes("cinematic_videography");
+
+  if (hasAnyPhotography) {
+    rules.push({
+      id: "deliv-photos-global",
+      when: { coverage: ["traditional_photography", "candid_photography"], global: true },
+      produce: { group: "Overview", label: "Highlighted photographs from all selected events." },
+    });
+  }
+
+  if (hasAnyVideography) {
+    rules.push({
+      id: "deliv-videos-global",
+      when: { coverage: ["traditional_videography", "cinematic_videography"], global: true },
+      produce: { group: "Overview", label: "Edited documentary-style videos of all selected events." },
+    });
+  }
+
+  if (hasCinematic) {
+    for (const [id, label] of Object.entries(CINEMATIC_EVENT_LABELS)) {
+      if (subEvents.some((s) => s.id === id)) {
+        rules.push({
+          id: `deliv-cinematic-${id}`,
+          when: { coverage: ["cinematic_videography"], subEvents: [id] },
+          produce: { group: "Videography", label },
+        });
+      }
+    }
+  }
+
+  for (const id of coverageIds) {
+    if (id === "traditional_photography" || id === "candid_photography") continue;
+    if (id === "traditional_videography") continue;
+    if (id === "cinematic_videography") continue;
+    const label = COVERAGE_DELIVERABLE_LABELS[id];
+    if (!label) continue;
+    rules.push({
+      id: `deliv-coverage-${id}`,
+      when: { coverage: [id] },
+      produce: {
+        group: DELIVERABLE_GROUP_COVERAGE,
+        label,
+        countPerSubEvent: true,
+      },
+    });
+  }
+
+  for (const id of addonIds) {
+    const label = ADDON_DELIVERABLE_LABELS[id];
+    if (!label) continue;
+    rules.push({
+      id: `deliv-addon-${id}`,
+      when: { addOns: [id] },
+      produce: {
+        group: DELIVERABLE_GROUP_ADDONS,
+        label,
+        countPerSubEvent: true,
+      },
+    });
+  }
+
+  rules.push({
+    id: "deliv-reels",
+    when: { reels: true },
+    produce: { group: "Digital", label: "Instagram reels" },
+  });
+
+  rules.push({
+    id: "deliv-album",
+    when: { album: true },
+    produce: { group: "Albums", label: "Premium printed album(s)" },
   });
 
   return rules;

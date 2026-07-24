@@ -10,7 +10,7 @@ import { downloadEstimatePdf } from "@/lib/estimator/pdf-client";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 export function DownloadStep() {
-  const { state, estimate, subEventDeliverables, dispatch } = useEstimator();
+  const { state, estimate, deliverableTexts, dispatch } = useEstimator();
   const [downloading, setDownloading] = useState(false);
 
   const handleDownload = async () => {
@@ -117,39 +117,22 @@ export function DownloadStep() {
             </div>
           )}
 
-          {subEventDeliverables.length > 0 && (
+          {deliverableTexts.length > 0 && (
             <>
               <Separator />
               <div className="flex flex-col gap-3">
                 <h2 className="font-heading text-base font-medium">
                   Included deliverables
                 </h2>
-                <div className="flex flex-col gap-5">
-                  {subEventDeliverables.map((se) => (
-                    <div key={se.subEventId} className="flex flex-col gap-2">
-                      <span className="text-sm font-semibold text-foreground">
-                        {se.subEventName}
-                      </span>
-                      {se.groups.map((grp) => (
-                        <div key={grp.group} className="rounded-lg border bg-muted/20 p-3">
-                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            {grp.group}
-                          </span>
-                          <div className="mt-1.5 flex flex-col gap-1">
-                            {grp.services.map((svc, i) => (
-                              <div
-                                key={`${se.subEventId}-${grp.group}-${i}`}
-                                className="flex items-start gap-2 rounded-md bg-background p-2 text-sm"
-                              >
-                                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                                <span>{svc.label}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                <div className="rounded-xl border bg-muted/20 p-4">
+                  <ul className="flex flex-col gap-2.5">
+                    {deliverableTexts.map((text, i) => (
+                      <li key={i} className="flex items-start gap-3 text-sm leading-relaxed">
+                        <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                        <span>{text}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             </>

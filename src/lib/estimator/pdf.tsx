@@ -21,7 +21,6 @@ import type {
   EstimateBreakdown,
   EstimatorState,
   EventTemplate,
-  SubEventDeliverable,
 } from "./types";
 
 // Load watermark image as base64
@@ -148,7 +147,7 @@ interface PdfProps {
   template: EventTemplate;
   state: EstimatorState;
   estimate: EstimateBreakdown;
-  subEventDeliverables: SubEventDeliverable[];
+  deliverableTexts: string[];
 }
 
 function Watermark() {
@@ -179,31 +178,16 @@ const FOOTER_HEIGHT = 16;
 const SUBHEADING_H = 16;
 const CATHEADING_H = 12;
 
-function PdfDeliverablesSection({ subEventDeliverables }: { subEventDeliverables: SubEventDeliverable[] }) {
-  if (subEventDeliverables.length === 0) return null;
+function PdfDeliverablesSection({ deliverableTexts }: { deliverableTexts: string[] }) {
+  if (deliverableTexts.length === 0) return null;
   return (
     <>
       <View style={styles.divider} />
       <Text style={styles.sectionTitle}>What you&apos;ll receive</Text>
-      {subEventDeliverables.map((se) => (
-        <View key={se.subEventId} style={{ marginBottom: 8 }}>
-          <Text style={styles.groupLabel}>{se.subEventName}</Text>
-          {se.groups.map((grp) => (
-            <View key={grp.group} style={{ marginBottom: 4, marginLeft: 8 }}>
-              <Text style={{ fontSize: 9, fontFamily: "Helvetica-Bold", color: "#6b7280", marginTop: 4, marginBottom: 3, textTransform: "uppercase" }}>
-                {grp.group}
-              </Text>
-              {grp.services.map((svc, i) => (
-                <View key={`${se.subEventId}-${grp.group}-${i}`} style={styles.deliverable}>
-                  <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
-                  <Text style={styles.deliverableText}>
-                    {svc.label}
-                    {svc.detail ? `  (${svc.detail})` : ""}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ))}
+      {deliverableTexts.map((text, i) => (
+        <View key={i} style={styles.deliverable}>
+          <Text style={styles.deliverableBullet}>{"\u2022"}</Text>
+          <Text style={styles.deliverableText}>{text}</Text>
         </View>
       ))}
     </>
@@ -274,7 +258,7 @@ function PdfPriceSection({ chunks }: { chunks: PdfChunk[] }) {
   );
 }
 
-function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }: PdfProps) {
+function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: PdfProps) {
   const today = new Date().toLocaleDateString("en-IN", {
     day: "numeric",
     month: "long",
@@ -333,13 +317,10 @@ function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }
 
   const chunksTotalH = flatChunks.reduce((acc, c) => acc + chunkHeight(c), 0);
 
-  const delivCount = subEventDeliverables.reduce((acc, se) => {
-    return acc + 1 + se.groups.reduce((gacc, grp) => gacc + 1 + grp.services.length, 0);
-  }, 0);
-  const deliverablesHeight = delivCount * DELIVERABLE_ITEM_HEIGHT + subEventDeliverables.length * DELIVERABLE_GROUP_HEIGHT;
+  const deliverableTextsHeight = deliverableTexts.length * DELIVERABLE_ITEM_HEIGHT;
 
-  const delivOverhead = subEventDeliverables.length > 0
-    ? DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + deliverablesHeight
+  const delivOverhead = deliverableTexts.length > 0
+    ? DIVIDER_HEIGHT + SECTION_TITLE_HEIGHT + deliverableTextsHeight
     : 0;
 
   const totalNeeded = fixedHeight + chunksTotalH + delivOverhead;
@@ -467,8 +448,8 @@ function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }
               </Text>
             </View>
 
-            {subEventDeliverables.length > 0 && (
-              <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
+            {deliverableTexts.length > 0 && (
+              <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
             )}
 
             <Text style={styles.disclaimer}>
@@ -504,8 +485,8 @@ function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }
                 </Text>
               </View>
 
-              {subEventDeliverables.length > 0 && (
-                <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
+              {deliverableTexts.length > 0 && (
+                <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
               )}
 
               <Text style={styles.disclaimer}>
@@ -539,8 +520,8 @@ function EstimatePdfDocument({ template, state, estimate, subEventDeliverables }
             </Text>
           </View>
 
-          {subEventDeliverables.length > 0 && (
-            <PdfDeliverablesSection subEventDeliverables={subEventDeliverables} />
+          {deliverableTexts.length > 0 && (
+            <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
           )}
 
           <Text style={styles.disclaimer}>
