@@ -6,7 +6,7 @@ import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 export function EstimatePanel({ compact = false }: { compact?: boolean }) {
-  const { estimate, recommendations, subEventDeliverables, dispatch } = useEstimator();
+  const { estimate, recommendations, deliverables, dispatch } = useEstimator();
 
   return (
     <div className="flex flex-col gap-4">
@@ -52,26 +52,19 @@ export function EstimatePanel({ compact = false }: { compact?: boolean }) {
         )}
       </div>
 
-      {!compact && subEventDeliverables.length > 0 && (
+      {!compact && deliverables.length > 0 && (
         <>
           <Separator />
           <div className="flex max-h-[44vh] flex-col gap-3 overflow-y-auto pr-1">
-            {subEventDeliverables.map((se) => (
-              <div key={se.subEventId} className="flex flex-col gap-1">
+            {deliverables.map((group) => (
+              <div key={group.group} className="flex flex-col gap-1">
                 <span className="text-xs font-semibold text-foreground">
-                  {se.subEventName}
+                  {group.group}
                 </span>
-                {se.groups.map((grp) => (
-                  <div key={grp.group} className="pl-2">
-                    <span className="text-[10px] font-semibold uppercase text-muted-foreground">
-                      {grp.group}
-                    </span>
-                    {grp.services.map((svc, i) => (
-                      <span key={i} className="block text-xs text-muted-foreground pl-2">
-                        {svc.label}
-                      </span>
-                    ))}
-                  </div>
+                {group.items.map((item) => (
+                  <span key={item.id} className="block text-xs text-muted-foreground pl-2">
+                    {item.label}
+                  </span>
                 ))}
               </div>
             ))}

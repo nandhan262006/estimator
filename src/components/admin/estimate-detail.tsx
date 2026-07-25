@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import type { EstimateBreakdown, DeliverableGroup, SubEventDeliverable, EstimatorState } from "@/lib/estimator/types";
+import type { EstimateBreakdown, DeliverableGroup, EstimatorState } from "@/lib/estimator/types";
 
 function formatINR(amount: number): string {
   return new Intl.NumberFormat("en-IN", {
@@ -18,7 +18,6 @@ interface SavedEstimate {
   state?: { selectedSubEvents?: unknown[] };
   estimate?: EstimateBreakdown;
   deliverables?: DeliverableGroup[];
-  subEventDeliverables?: SubEventDeliverable[];
 }
 
 function parseEstimateData(raw: string): SavedEstimate | null {
@@ -43,7 +42,7 @@ export function EstimateDetail({ estimateData }: { estimateData: string }) {
   }
 
   const estimate = data.estimate;
-  const subEventDeliverables = data.subEventDeliverables;
+  const deliverables = data.deliverables;
 
   return (
     <div>
@@ -95,27 +94,20 @@ export function EstimateDetail({ estimateData }: { estimateData: string }) {
             </p>
           )}
 
-          {subEventDeliverables && subEventDeliverables.length > 0 && (
+          {deliverables && deliverables.length > 0 && (
             <div className="mt-3 flex flex-col gap-2 border-t pt-3">
               <span className="text-xs font-medium uppercase text-muted-foreground">
                 Deliverables
               </span>
-              {subEventDeliverables.map((se) => (
-                <div key={se.subEventId} className="flex flex-col gap-1">
+              {deliverables.map((group) => (
+                <div key={group.group} className="flex flex-col gap-1">
                   <span className="text-xs font-semibold text-foreground">
-                    {se.subEventName}
+                    {group.group}
                   </span>
-                  {se.groups.map((grp) => (
-                    <div key={grp.group} className="pl-2 mb-1">
-                      <span className="text-[10px] font-semibold uppercase text-muted-foreground">
-                        {grp.group}
-                      </span>
-                      {grp.services.map((svc, i) => (
-                        <div key={i} className="flex items-start gap-2 text-xs pl-2">
-                          <span className="text-primary/70">&#10003;</span>
-                          <span>{svc.label}{svc.detail ? ` (${svc.detail})` : ""}</span>
-                        </div>
-                      ))}
+                  {group.items.map((item) => (
+                    <div key={item.id} className="flex items-start gap-2 text-xs pl-2">
+                      <span className="text-primary/70">&#10003;</span>
+                      <span>{item.label}{item.detail ? ` (${item.detail})` : ""}</span>
                     </div>
                   ))}
                 </div>

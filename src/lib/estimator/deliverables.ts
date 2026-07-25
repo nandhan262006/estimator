@@ -5,19 +5,16 @@
  * current selection using the template's declarative deliverable rules. This
  * keeps the output consistent with what the team will actually deliver.
  *
- * Three output formats:
+ * Two output formats:
  * - `generateDeliverableTexts` — flat sentence-style list for the UI and PDF.
  * - `generateDeliverables` — flat groups (Coverage, Add-ons, etc.) for the
- *   estimate panel sidebar.
- * - `generateSubEventDeliverables` — structured by sub-event with services
- *   listed under each, for backward-compatible PDF and admin views.
+ *   estimate panel sidebar and admin views.
  */
 import type {
   Deliverable,
   DeliverableGroup,
   EstimatorState,
   EventTemplate,
-  SubEventDeliverable,
 } from "./types";
 
 function plural(count: number, noun: string): string {
@@ -159,126 +156,7 @@ export function generateDeliverableTexts(
 }
 
 /**
- * Group deliverables by sub-event. Each sub-event heading lists the
- * services selected for it. Albums are listed separately since they
- * are not scoped to a sub-event.
- */
-export function generateSubEventDeliverables(
-  state: EstimatorState,
-  template: EventTemplate,
-): SubEventDeliverable[] {
-  const result: SubEventDeliverable[] = [];
-  const seen = new Set<string>();
-  const globalIds = new Set(
-    template.deliverableRules
-      .filter((r) => r.when.global)
-      .map((r) => r.id),
-  );
-
-  for (const subId of state.selectedSubEvents) {
-    const cfg = state.subEventConfig[subId];
-    if (!cfg) continue;
-    const sub = template.subEvents.find((s) => s.id === subId);
-    const subName = sub?.name ?? subId;
-    const services: { label: string; detail?: string; group: string }[] = [];
-
-    for (const rule of template.deliverableRules) {
-      if (globalIds.has(rule.id)) continue;
-      if (rule.when.reels) continue;
-      if (rule.when.album) continue;
-      if (!subMatchesRule(subId, rule)) continue;
-
-      if (rule.when.coverage && !rule.when.addOns) {
-        for (const coverageId of rule.when.coverage) {
-          if (!cfg.coverage.includes(coverageId)) continue;
-          const key = `coverage-${subId}-${coverageId}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          services.push({
-            label: rule.produce.label,
-            detail: rule.produce.countPerSubEvent ? "1 sub-event" : undefined,
-            group: rule.produce.group,
-          });
-        }
-      }
-
-      if (rule.when.addOns) {
-        for (const addOnId of rule.when.addOns) {
-          if (!cfg.addOns.includes(addOnId)) continue;
-          const key = `addon-${subId}-${addOnId}`;
-          if (seen.has(key)) continue;
-          seen.add(key);
-          services.push({
-            label: rule.produce.label,
-            detail: rule.produce.countPerSubEvent ? "1 sub-event" : undefined,
-            group: rule.produce.group,
-          });
-        }
-      }
-    }
-
-    // Reels under this sub-event
-    if (cfg.reels > 0) {
-      for (const rule of template.deliverableRules) {
-        if (!rule.when.reels) continue;
-        if (!subMatchesRule(subId, rule)) continue;
-        const key = `reels-${subId}-${rule.id}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          services.push({
-            label: rule.produce.label,
-            detail: plural(cfg.reels, "reel"),
-            group: rule.produce.group,
-          });
-        }
-      }
-    }
-
-    if (services.length > 0) {
-      const groupMap = new Map<string, { label: string; detail?: string }[]>();
-      const groupOrder: string[] = [];
-      for (const svc of services) {
-        if (!groupMap.has(svc.group)) {
-          groupMap.set(svc.group, []);
-          groupOrder.push(svc.group);
-        }
-        groupMap.get(svc.group)!.push({ label: svc.label, detail: svc.detail });
-      }
-      result.push({
-        subEventId: subId,
-        subEventName: subName,
-        groups: groupOrder.map((g) => ({ group: g, services: groupMap.get(g)! })),
-      });
-    }
-  }
-
-  const album = state.album;
-  if (album.required && album.typeId && album.sizeId) {
-    const type = template.album.types.find((t) => t.id === album.typeId);
-    const size = template.album.sizes.find((s) => s.id === album.sizeId);
-    if (type && size) {
-      result.push({
-        subEventId: "__album__",
-        subEventName: "Albums",
-        groups: [
-          {
-            group: "Albums",
-            services: [
-              {
-                label: `${album.count} \u00d7 ${type.name} (${size.name}, ${album.pages}p)`,
-              },
-            ],
-          },
-        ],
-      });
-    }
-  }
-
-  return result;
-}
-
-/**
- * Legacy flat-group deliverables (used by the estimate panel sidebar).
+ * Flat-group deliverables for the estimate panel sidebar and admin views.
  */
 export function generateDeliverables(
   state: EstimatorState,

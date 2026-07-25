@@ -226,16 +226,6 @@ export interface DeliverableGroup {
   items: Deliverable[];
 }
 
-/** Deliverables re-grouped by sub-event for structured display. */
-export interface SubEventDeliverable {
-  subEventId: ID;
-  subEventName: string;
-  groups: {
-    group: string;
-    services: { label: string; detail?: string }[];
-  }[];
-}
-
 /* -------------------------------------------------------------------------- */
 /* Recommendations (output of the pure recommendation engine)                */
 /* -------------------------------------------------------------------------- */

@@ -9,7 +9,7 @@ import { formatINR } from "@/lib/estimator/format";
 import { useEstimator } from "@/lib/estimator/state-provider";
 
 export function EstimateStep() {
-  const { estimate, subEventDeliverables, recommendations, dispatch } =
+  const { estimate, deliverables, recommendations, dispatch } =
     useEstimator();
 
   const subEventGroups = new Map<string, string>();
@@ -104,7 +104,7 @@ export function EstimateStep() {
             </div>
           )}
 
-          {subEventDeliverables.length > 0 && (
+          {deliverables.length > 0 && (
             <>
               <Separator />
               <div className="flex flex-col gap-3">
@@ -112,36 +112,31 @@ export function EstimateStep() {
                   What you&apos;ll receive
                 </h2>
                 <div className="flex flex-col gap-5">
-                  {subEventDeliverables.map((se) => (
-                    <div key={se.subEventId} className="flex flex-col gap-2">
+                  {deliverables.map((group) => (
+                    <div key={group.group} className="flex flex-col gap-2">
                       <span className="text-sm font-semibold text-foreground">
-                        {se.subEventName}
+                        {group.group}
                       </span>
-                      {se.groups.map((grp) => (
-                        <div key={grp.group} className="rounded-lg border bg-muted/20 p-3">
-                          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                            {grp.group}
-                          </span>
-                          <div className="mt-1.5 flex flex-col gap-1">
-                            {grp.services.map((svc, i) => (
-                              <div
-                                key={`${se.subEventId}-${grp.group}-${i}`}
-                                className="flex items-start gap-2 rounded-md bg-background p-2 text-sm"
-                              >
-                                <Check className="mt-0.5 size-4 shrink-0 text-primary" />
-                                <span className="flex flex-wrap items-baseline gap-x-1.5">
-                                  <span>{svc.label}</span>
-                                  {svc.detail && (
-                                    <span className="text-xs text-muted-foreground">
-                                      ({svc.detail})
-                                    </span>
-                                  )}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
+                      <div className="rounded-lg border bg-muted/20 p-3">
+                        <div className="flex flex-col gap-1">
+                          {group.items.map((item) => (
+                            <div
+                              key={item.id}
+                              className="flex items-start gap-2 rounded-md bg-background p-2 text-sm"
+                            >
+                              <Check className="mt-0.5 size-4 shrink-0 text-primary" />
+                              <span className="flex flex-wrap items-baseline gap-x-1.5">
+                                <span>{item.label}</span>
+                                {item.detail && (
+                                  <span className="text-xs text-muted-foreground">
+                                    ({item.detail})
+                                  </span>
+                                )}
+                              </span>
+                            </div>
+                          ))}
                         </div>
-                      ))}
+                      </div>
                     </div>
                   ))}
                 </div>
