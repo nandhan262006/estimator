@@ -1,26 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getAddOnOption } from "@/lib/estimator/catalog";
 import { formatINR } from "@/lib/estimator/format";
+import { indexSubEvents } from "@/lib/estimator/pricing";
 import { useEstimator } from "@/lib/estimator/state-provider";
-import type { EventTemplate, ID, PriceRange } from "@/lib/estimator/types";
+import type { EventTemplate, ID, PriceRange, SubEventDef } from "@/lib/estimator/types";
 import { ToggleChip } from "../primitives";
 
 function addOnPrice(
   template: EventTemplate,
   subEventId: ID,
   addOnId: ID,
+  subMap: Map<ID, SubEventDef>,
 ): PriceRange | undefined {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  return sub?.addOns?.[addOnId] ?? template.defaultAddOnPrices[addOnId];
+  return subMap.get(subEventId)?.addOns?.[addOnId] ?? template.defaultAddOnPrices[addOnId];
 }
 
 export function AddOnStep() {
   const { state, template, dispatch } = useEstimator();
   const [open, setOpen] = useState<Record<ID, boolean>>({});
+  const subMap = useMemo(() => (template ? indexSubEvents(template.subEvents) : new Map<ID, SubEventDef>()), [template]);
 
   if (!template) return null;
 
@@ -66,7 +68,7 @@ export function AddOnStep() {
 
       <div className="flex flex-col gap-2.5">
         {state.selectedSubEvents.map((subId) => {
-          const sub = template.subEvents.find((s) => s.id === subId);
+          const sub = subMap.get(subId);
           const cfg = state.subEventConfig[subId];
           if (!sub || !cfg) return null;
 
@@ -103,7 +105,7 @@ export function AddOnStep() {
                     {template.addOnOptions.map((id) => {
                       const opt = getAddOnOption(id);
                       if (!opt) return null;
-                      const price = addOnPrice(template, subId, id);
+                      const price = addOnPrice(template, subId, id, subMap);
                       return (
                         <ToggleChip
                           key={id}

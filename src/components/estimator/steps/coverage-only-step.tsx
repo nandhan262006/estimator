@@ -1,32 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCoverageOption } from "@/lib/estimator/catalog";
 import { formatINR } from "@/lib/estimator/format";
 import { maxReelsFor } from "@/lib/estimator/state";
+import { indexSubEvents } from "@/lib/estimator/pricing";
 import { useEstimator } from "@/lib/estimator/state-provider";
-import type { EventTemplate, ID, PriceRange } from "@/lib/estimator/types";
+import type { EventTemplate, ID, PriceRange, SubEventDef } from "@/lib/estimator/types";
 import { ToggleChip } from "../primitives";
 
 function coveragePrice(
   template: EventTemplate,
   subEventId: ID,
   coverageId: ID,
+  subMap: Map<ID, SubEventDef>,
 ): PriceRange | undefined {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  return sub?.coverage?.[coverageId] ?? template.defaultCoveragePrices[coverageId];
+  return subMap.get(subEventId)?.coverage?.[coverageId] ?? template.defaultCoveragePrices[coverageId];
 }
 
-function reelPrice(template: EventTemplate, subEventId: ID): PriceRange {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  return sub?.reel ?? template.defaultReelPrice;
+function reelPrice(template: EventTemplate, subEventId: ID, subMap: Map<ID, SubEventDef>): PriceRange {
+  return subMap.get(subEventId)?.reel ?? template.defaultReelPrice;
 }
 
 export function CoverageOnlyStep() {
   const { state, template, dispatch } = useEstimator();
   const [open, setOpen] = useState<Record<ID, boolean>>({});
+  const subMap = useMemo(() => (template ? indexSubEvents(template.subEvents) : new Map<ID, SubEventDef>()), [template]);
 
   if (!template) return null;
 
@@ -56,7 +57,7 @@ export function CoverageOnlyStep() {
 
       <div className="flex flex-col gap-2.5">
         {state.selectedSubEvents.map((subId) => {
-          const sub = template.subEvents.find((s) => s.id === subId);
+          const sub = subMap.get(subId);
           const cfg = state.subEventConfig[subId];
           if (!sub || !cfg) return null;
 
@@ -99,7 +100,7 @@ export function CoverageOnlyStep() {
                       {template.coverageOptions.map((id) => {
                         const opt = getCoverageOption(id);
                         if (!opt) return null;
-                        const price = coveragePrice(template, subId, id);
+                        const price = coveragePrice(template, subId, id, subMap);
                         return (
                           <ToggleChip
                             key={id}
@@ -129,7 +130,7 @@ export function CoverageOnlyStep() {
                         Instagram reels
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatINR(reelPrice(template, subId).value)} / reel
+                        {formatINR(reelPrice(template, subId, subMap).value)} / reel
                       </span>
                     </div>
                     <div className="flex gap-2 overflow-x-auto pb-1">

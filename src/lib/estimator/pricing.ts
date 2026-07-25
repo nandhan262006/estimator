@@ -3,30 +3,9 @@ import type {
   EventTemplate,
   ID,
   LineItem,
-  PriceRange,
+  SubEventDef,
 } from "./types";
 import { getCoverageOption, getAddOnOption } from "./catalog";
-
-function coveragePrice(template: EventTemplate, subEventId: ID, coverageId: ID): PriceRange | undefined {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  const override = sub?.coverage?.[coverageId];
-  return override ?? template.defaultCoveragePrices[coverageId];
-}
-
-function addOnPrice(template: EventTemplate, subEventId: ID, addOnId: ID): PriceRange | undefined {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  const override = sub?.addOns?.[addOnId];
-  return override ?? template.defaultAddOnPrices[addOnId];
-}
-
-function reelPrice(template: EventTemplate, subEventId: ID): PriceRange {
-  const sub = template.subEvents.find((s) => s.id === subEventId);
-  return sub?.reel ?? template.defaultReelPrice;
-}
-
-function subEventName(template: EventTemplate, id: ID): string {
-  return template.subEvents.find((s) => s.id === id)?.name ?? id;
-}
 
 export function calculateEstimate(
   state: { selectedSubEvents: ID[]; subEventConfig: Record<ID, { coverage: ID[]; addOns: ID[]; reels: number }>; album: { required: boolean; typeId: ID | null; sizeId: ID | null; pages: number; count: number } },
@@ -38,6 +17,7 @@ export function calculateEstimate(
 
   const validCoverage = new Set(template.coverageOptions);
   const validAddOns = new Set(template.addOnOptions);
+  const subMap = indexSubEvents(template.subEvents);
 
   for (const subEventId of state.selectedSubEvents) {
     const cfg = state.subEventConfig[subEventId];
@@ -46,12 +26,14 @@ export function calculateEstimate(
       cfg.coverage.length > 0 || cfg.addOns.length > 0 || cfg.reels > 0;
     if (!hasAnything) continue;
     subEventCount += 1;
-    const name = subEventName(template, subEventId);
+    const sub = subMap.get(subEventId);
+    const name = sub?.name ?? subEventId;
 
     for (const coverageId of template.coverageOptions) {
       if (!cfg.coverage.includes(coverageId)) continue;
       if (!validCoverage.has(coverageId)) continue;
-      const price = coveragePrice(template, subEventId, coverageId);
+      const override = sub?.coverage?.[coverageId];
+      const price = override ?? template.defaultCoveragePrices[coverageId];
       if (!price) continue;
       items.push({
         id: `coverage-${subEventId}-${coverageId}`,
@@ -66,7 +48,8 @@ export function calculateEstimate(
     for (const addOnId of template.addOnOptions) {
       if (!cfg.addOns.includes(addOnId)) continue;
       if (!validAddOns.has(addOnId)) continue;
-      const price = addOnPrice(template, subEventId, addOnId);
+      const override = sub?.addOns?.[addOnId];
+      const price = override ?? template.defaultAddOnPrices[addOnId];
       if (!price) continue;
       items.push({
         id: `addon-${subEventId}-${addOnId}`,
@@ -79,7 +62,7 @@ export function calculateEstimate(
     }
 
     if (cfg.reels > 0) {
-      const price = reelPrice(template, subEventId);
+      const price = sub?.reel ?? template.defaultReelPrice;
       items.push({
         id: `reels-${subEventId}`,
         group: "Reels",
@@ -117,6 +100,12 @@ export function calculateEstimate(
     subEventCount,
     isEmpty,
   };
+}
+
+export function indexSubEvents(subs: SubEventDef[]): Map<ID, SubEventDef> {
+  const map = new Map<ID, SubEventDef>();
+  for (const s of subs) map.set(s.id, s);
+  return map;
 }
 
 function labelForCoverage(id: ID): string {

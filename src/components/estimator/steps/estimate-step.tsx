@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Check,
 } from "lucide-react";
@@ -12,23 +13,23 @@ export function EstimateStep() {
   const { estimate, deliverables, recommendations, dispatch } =
     useEstimator();
 
-  const subEventGroups = new Map<string, string>();
-  const subEventItems = new Map<string, Map<string, typeof estimate.items>>();
-  const subEventOrder: string[] = [];
-
-  for (const item of estimate.items) {
-    const subName = item.detail ?? "General";
-    if (!subEventItems.has(subName)) {
-      subEventItems.set(subName, new Map());
-      subEventOrder.push(subName);
+  const { subEventOrder, subEventItems } = useMemo(() => {
+    const items = new Map<string, Map<string, typeof estimate.items>>();
+    const order: string[] = [];
+    for (const item of estimate.items) {
+      const subName = item.detail ?? "General";
+      if (!items.has(subName)) {
+        items.set(subName, new Map());
+        order.push(subName);
+      }
+      const groups = items.get(subName)!;
+      if (!groups.has(item.group)) {
+        groups.set(item.group, []);
+      }
+      groups.get(item.group)!.push(item);
     }
-    const groups = subEventItems.get(subName)!;
-    if (!groups.has(item.group)) {
-      groups.set(item.group, []);
-    }
-    groups.get(item.group)!.push(item);
-    subEventGroups.set(subName, item.detail ?? "");
-  }
+    return { subEventOrder: order, subEventItems: items };
+  }, [estimate.items]);
 
   return (
     <section className="flex flex-col gap-6">

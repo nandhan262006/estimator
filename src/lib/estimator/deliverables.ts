@@ -15,7 +15,15 @@ import type {
   DeliverableGroup,
   EstimatorState,
   EventTemplate,
+  ID,
+  SubEventDef,
 } from "./types";
+
+function subMap(subs: SubEventDef[]): Map<ID, SubEventDef> {
+  const m = new Map<ID, SubEventDef>();
+  for (const s of subs) m.set(s.id, s);
+  return m;
+}
 
 function plural(count: number, noun: string): string {
   return `${count} ${noun}${count === 1 ? "" : "s"}`;
@@ -114,12 +122,12 @@ export function generateDeliverableTexts(
   for (const rule of template.deliverableRules) {
     if (!rule.when.reels) continue;
     const subEventsWithReels: string[] = [];
+    const subs = subMap(template.subEvents);
     for (const subId of state.selectedSubEvents) {
       if (!subMatchesRule(subId, rule)) continue;
       const reels = state.subEventConfig[subId]?.reels ?? 0;
       if (reels > 0) {
-        const sub = template.subEvents.find((s) => s.id === subId);
-        subEventsWithReels.push(sub?.name ?? subId);
+        subEventsWithReels.push(subs.get(subId)?.name ?? subId);
       }
     }
     if (subEventsWithReels.length > 0) {

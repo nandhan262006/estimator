@@ -41,13 +41,14 @@ function EstimatorShell() {
     if (state.step >= 7 && state.clientName && state.clientPhone && state.eventTypeId) {
       if (savedRef.current) return;
       savedRef.current = true;
+      const estimateJSON = JSON.stringify({ state, estimate, deliverables });
       saveEstimateLead({
         clientName: state.clientName,
         clientPhone: state.clientPhone,
         eventType: state.eventTypeId,
         eventName: template?.name ?? "",
         estimatedDate: state.estimatedDate,
-        estimateData: JSON.stringify({ state, estimate, deliverables }),
+        estimateData: estimateJSON,
       }).catch(() => {
         console.warn("Failed to auto-save estimate lead");
       });
