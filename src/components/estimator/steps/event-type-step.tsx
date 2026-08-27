@@ -24,17 +24,17 @@ export function EventTypeStep() {
   };
 
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">
+    <section className="animate-fade-in-up flex flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold tracking-tight">
           What are you celebrating?
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
           Pick an event type to load the relevant package template.
         </p>
       </header>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2.5">
         {templates.map((t) => {
           const isExpanded = expanded === t.id;
           const isSelected = selectedId === t.id;
@@ -45,29 +45,29 @@ export function EventTypeStep() {
               onClick={() => select(t.id)}
               aria-expanded={isExpanded}
               className={cn(
-                "relative inline-flex items-center gap-2 rounded-[9999px] border px-4 py-2 text-sm transition-all duration-300",
+                "group relative inline-flex items-center gap-2.5 rounded-full border px-5 py-2.5 text-sm font-medium transition-all duration-300",
                 isExpanded
-                  ? "border-primary bg-primary/5 ring-1 ring-primary"
+                  ? "border-primary bg-primary/10 shadow-md shadow-primary/10"
                   : isSelected
                     ? "border-primary/40 bg-primary/5"
-                    : "border-border hover:border-foreground/30 hover:shadow-sm",
+                    : "border-border hover:border-foreground/20 hover:bg-muted/50 hover:shadow-sm",
               )}
             >
               <div
                 className={cn(
-                  "flex size-5 items-center justify-center rounded-full transition-colors duration-300",
+                  "flex size-7 items-center justify-center rounded-full transition-all duration-300",
                   isExpanded
-                    ? "bg-primary/15 text-primary"
+                    ? "bg-primary text-primary-foreground"
                     : isSelected
-                      ? "bg-primary/10 text-primary"
-                      : "bg-muted text-muted-foreground",
+                      ? "bg-primary/15 text-primary"
+                      : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
                 )}
               >
-                <Icon name={t.icon} className="size-3" />
+                <Icon name={t.icon} className="size-3.5" />
               </div>
-              <span className="font-medium">{t.name}</span>
+              <span>{t.name}</span>
               {isSelected && !isExpanded && (
-                <span className="ml-1 size-1.5 rounded-full bg-primary" />
+                <span className="ml-0.5 size-1.5 rounded-full bg-primary animate-pulse" />
               )}
             </button>
           );
@@ -78,7 +78,7 @@ export function EventTypeStep() {
         const t = expanded ? templates.find((tpl) => tpl.id === expanded) : null;
         if (!t || !(t.description || t.tagline)) return null;
         return (
-          <div className="rounded-xl border border-border bg-muted/30 p-4">
+          <div className="animate-fade-in-up rounded-2xl border border-border bg-card p-5 shadow-sm">
             <p className="text-sm leading-relaxed text-muted-foreground">
               {t.description || t.tagline}
             </p>

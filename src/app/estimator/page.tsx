@@ -5,14 +5,14 @@ import { loadTemplates } from "@/lib/estimator/templates";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Event Cost Estimator | Photriya Studios",
+  title: "Event Cost Estimator | Mamatha Raj Photography",
   description:
-    "Build your photography and videography package at Photriya Studios, Hyderabad and get an instant rough estimate.",
+    "Build your photography and videography package at Mamatha Raj Photography, Hyderabad and get an instant rough estimate.",
   openGraph: {
-    title: "Event Cost Estimator | Photriya Studios",
+    title: "Event Cost Estimator | Mamatha Raj Photography",
     description:
-      "Build your photography and videography package at Photriya Studios, Hyderabad and get an instant rough estimate.",
-    siteName: "Photriya Studios",
+      "Build your photography and videography package at Mamatha Raj Photography, Hyderabad and get an instant rough estimate.",
+    siteName: "Mamatha Raj Photography",
     locale: "en_IN",
     type: "website",
   },

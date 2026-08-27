@@ -12,14 +12,19 @@ function createDb(): { db: LibSQLDatabase<typeof schema> } | { db: null } {
     const client = url.startsWith("libsql://")
       ? createClient({ url, authToken })
       : createClient({ url });
+    client.execute("PRAGMA foreign_keys = ON").catch(() => {});
     return { db: drizzle(client, { schema }) };
   } catch {
     return { db: null };
   }
 }
 
-const resolved = globalForDb._db ?? createDb();
-if (process.env.NODE_ENV !== "production") globalForDb._db = resolved;
+function getResolved() {
+  if (process.env.NODE_ENV !== "production") return createDb();
+  const resolved = globalForDb._db ?? createDb();
+  globalForDb._db = resolved;
+  return resolved;
+}
 
-export const { db } = resolved;
+export const { db } = getResolved();
 export { schema };

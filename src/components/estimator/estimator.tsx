@@ -83,28 +83,28 @@ function EstimatorShell() {
     dispatch({ type: "SET_STEP", step: Math.min(lastStep, state.step + 1) });
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <header className="sticky top-0 z-40 border-b bg-background/85 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
+    <div className="grain-overlay flex min-h-0 flex-1 flex-col">
+      <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
           <Link
             href="/"
-            className="flex items-center text-sm font-medium text-foreground hover:text-muted-foreground"
+            className="flex items-center gap-2.5 text-sm font-medium text-foreground transition-opacity hover:opacity-70"
           >
-            <Image src="/NAVIBAR.png" alt="Photriya Studios" width={75} height={75} priority />
+            <Image src="/logo.png" alt="Mamatha Raj Photography" width={40} height={40} priority />
           </Link>
           <div className="flex flex-col leading-none text-right">
-            <span className="text-xs text-muted-foreground">
+            <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
               Event Cost Estimator
             </span>
           </div>
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-2 overflow-y-auto">
-        <div className="grid gap-6 lg:grid-cols-[1fr_22rem] lg:gap-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-6 py-4 overflow-y-auto">
+        <div className="grid gap-8 lg:grid-cols-[1fr_22rem]">
           <div className="min-w-0 overflow-hidden">
             <StepNav />
-            <div className="mt-6">
+            <div className="mt-8">
               {state.step === 0 && <ClientInfoStep />}
               {state.step === 1 && <EventTypeStep />}
               {state.step === 2 && <SubEventsStep />}
@@ -116,24 +116,36 @@ function EstimatorShell() {
               {state.step === 8 && <DownloadStep />}
             </div>
 
-            <div className="mt-8 flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+            <div className="mt-10 flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
                 {state.step > 0 && (
-                  <Button variant="outline" onClick={prev} className="rounded-[9999px]">
+                  <Button
+                    variant="outline"
+                    onClick={prev}
+                    className="rounded-full"
+                  >
                     <ArrowLeft className="mr-1.5 size-4" />
                     Previous
                   </Button>
                 )}
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 {SKIPPABLE_STEPS.has(state.step) && state.step < lastStep && (
-                  <Button variant="ghost" onClick={skip} className="rounded-[9999px]">
+                  <Button
+                    variant="ghost"
+                    onClick={skip}
+                    className="rounded-full text-muted-foreground"
+                  >
                     Skip
                     <SkipForward className="ml-1.5 size-4" />
                   </Button>
                 )}
                 {state.step < lastStep && (
-                  <Button onClick={next} disabled={!canProceed} className="rounded-[9999px]">
+                  <Button
+                    onClick={next}
+                    disabled={!canProceed}
+                    className="rounded-full"
+                  >
                     Next
                     <ArrowRight className="ml-1.5 size-4" />
                   </Button>
@@ -143,7 +155,7 @@ function EstimatorShell() {
           </div>
 
           <aside className="hidden lg:block">
-            <div className="sticky top-24 rounded-xl border bg-card p-4">
+            <div className="sticky top-24 rounded-2xl border border-border bg-card p-5 shadow-sm">
               <EstimatePanel />
             </div>
           </aside>

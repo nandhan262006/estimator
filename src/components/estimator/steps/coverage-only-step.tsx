@@ -44,18 +44,18 @@ export function CoverageOnlyStep() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">
+    <section className="animate-fade-in-up flex flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold tracking-tight">
           Coverage selection
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
           For every selected sub-event, choose the photography, videography
           coverage and reels you need. Prices update instantly.
         </p>
       </header>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-col gap-3">
         {state.selectedSubEvents.map((subId) => {
           const sub = subMap.get(subId);
           const cfg = state.subEventConfig[subId];
@@ -69,14 +69,14 @@ export function CoverageOnlyStep() {
           const maxReels = maxReelsFor(template, subId);
 
           return (
-            <div key={subId} className="rounded-xl border">
+            <div key={subId} className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm transition-shadow duration-300 hover:shadow-md">
               <button
                 type="button"
                 onClick={() => toggle(subId)}
                 aria-expanded={isOpen(subId)}
-                className="flex w-full items-center justify-between gap-2 p-3 text-left"
+                className="flex w-full items-center justify-between gap-3 p-4 text-left transition-colors duration-200 hover:bg-muted/30"
               >
-                <span className="flex min-w-0 items-center gap-2 overflow-hidden">
+                <span className="flex min-w-0 items-center gap-3 overflow-hidden">
                   <span className="truncate font-medium">{sub.name}</span>
                   <span className="truncate text-xs text-muted-foreground">
                     {summary}
@@ -84,19 +84,19 @@ export function CoverageOnlyStep() {
                 </span>
                 <ChevronDown
                   className={cn(
-                    "size-4 shrink-0 text-muted-foreground transition-transform",
+                    "size-4 shrink-0 text-muted-foreground transition-transform duration-300",
                     isOpen(subId) && "rotate-180",
                   )}
                 />
               </button>
 
               {isOpen(subId) && (
-                <div className="flex flex-col gap-4 border-t p-3">
-                  <div className="flex flex-col gap-2">
-                    <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                <div className="flex flex-col gap-5 border-t border-border p-4 bg-muted/10">
+                  <div className="flex flex-col gap-3">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                       Coverage
                     </span>
-                    <div className="grid gap-2 sm:grid-cols-2">
+                    <div className="grid gap-2.5 sm:grid-cols-2">
                       {template.coverageOptions.map((id) => {
                         const opt = getCoverageOption(id);
                         if (!opt) return null;
@@ -124,9 +124,9 @@ export function CoverageOnlyStep() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         Instagram reels
                       </span>
                       <span className="text-xs text-muted-foreground">
@@ -149,10 +149,10 @@ export function CoverageOnlyStep() {
                             }
                             aria-pressed={selected}
                             className={cn(
-                              "flex-1 rounded-lg border py-2 text-sm font-medium transition-all",
+                              "flex-1 rounded-xl border py-2.5 text-sm font-medium transition-all duration-200",
                               selected
-                                ? "border-primary bg-primary/5 text-primary ring-1 ring-primary"
-                                : "border-border hover:bg-muted/40",
+                                ? "border-primary bg-primary/10 text-primary shadow-sm shadow-primary/10"
+                                : "border-border hover:bg-muted/50 hover:border-foreground/20",
                             )}
                           >
                             {n === 0 ? "None" : n}

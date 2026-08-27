@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   deleteSubEvent,
   deleteTemplate,
 } from "@/lib/admin/template-actions";
+import { DEFAULT_COVERAGE_PRICES, DEFAULT_ADDON_PRICES } from "@/lib/estimator/templates/shared";
 
 interface SubEvent {
   id: number;
@@ -142,7 +143,11 @@ function EventsEditor({ templates }: { templates: Template[] }) {
     try {
       const templateId = editing === NEW_ID ? undefined : editing ?? undefined;
       const existing = typeof templateId === "number" ? templates.find((t) => t.id === templateId) : null;
-      await upsertTemplate({ ...form, id: templateId, defaultPrices: existing?.defaultPrices });
+      const defaultPrices = existing?.defaultPrices ?? JSON.stringify({
+        coverage: Object.fromEntries(Object.entries(DEFAULT_COVERAGE_PRICES).map(([k, v]) => [k, v.value])),
+        addOns: Object.fromEntries(Object.entries(DEFAULT_ADDON_PRICES).map(([k, v]) => [k, v.value])),
+      });
+      await upsertTemplate({ ...form, id: templateId, defaultPrices });
       toast.success("Saved");
       setEditing(null);
       router.refresh();
@@ -267,15 +272,15 @@ function SubEventsEditor({
 }) {
   const router = useRouter();
   const tmpl = templates.find((t) => t.id === selectedTemplate);
-  const [form, setForm] = useState({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: 0 });
+  const [form, setForm] = useState({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: 0, priceOverrides: "{}" });
   const [editing, setEditing] = useState<number | null>(null);
 
   const startEdit = (se?: SubEvent) => {
     if (se) {
-      setForm({ subEventId: se.subEventId, name: se.name, description: se.description, defaultSelected: Boolean(se.defaultSelected), maxReels: se.maxReels?.toString() ?? "", sortOrder: se.sortOrder });
+      setForm({ subEventId: se.subEventId, name: se.name, description: se.description, defaultSelected: Boolean(se.defaultSelected), maxReels: se.maxReels?.toString() ?? "", sortOrder: se.sortOrder, priceOverrides: se.priceOverrides ?? "{}" });
       setEditing(se.id);
     } else {
-      setForm({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: tmpl?.subEvents.length ?? 0 });
+      setForm({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: tmpl?.subEvents.length ?? 0, priceOverrides: "{}" });
       setEditing(NEW_SUB_ID);
     }
   };
@@ -291,7 +296,7 @@ function SubEventsEditor({
         defaultSelected: form.defaultSelected,
         maxReels: form.maxReels ? Number(form.maxReels) : null,
         sortOrder: form.sortOrder,
-        priceOverrides: {},
+        priceOverrides: safeParse(form.priceOverrides) ?? {},
         templateId: selectedTemplate,
       });
       toast.success("Saved");
@@ -445,55 +450,8 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
 }
 
 function PricesEditor({ templates }: { templates: Template[] }) {
-  const router = useRouter();
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
-  const [prices, setPrices] = useState<Record<string, string>>({});
-  const [addonPrices, setAddonPrices] = useState<Record<string, string>>({});
-  const [reelPrice, setReelPrice] = useState("");
-
   const tmpl = templates.find((t) => t.id === selectedTemplate);
-
-  useEffect(() => {
-    if (!tmpl) { setPrices({}); setAddonPrices({}); setReelPrice(""); return; }
-    const parsed = safeParse<{ coverage?: Record<string, number>; addOns?: Record<string, number>; reel?: { value: number } }>(tmpl.defaultPrices);
-    const cov: Record<string, string> = {};
-    const add: Record<string, string> = {};
-    if (parsed?.coverage) {
-      for (const [key, val] of Object.entries(parsed.coverage)) cov[key] = String(val);
-    }
-    if (parsed?.addOns) {
-      for (const [key, val] of Object.entries(parsed.addOns)) add[key] = String(val);
-    }
-    setPrices(cov);
-    setAddonPrices(add);
-    setReelPrice(parsed?.reel?.value ? String(parsed.reel.value) : String(tmpl.defaultReelPrice));
-  }, [selectedTemplate]);
-
-  const save = async () => {
-    if (!selectedTemplate || !tmpl) return;
-    const coverage: Record<string, number> = {};
-    const addOns: Record<string, number> = {};
-    for (const [key, val] of Object.entries(prices)) { if (val) coverage[key] = Number(val); }
-    for (const [key, val] of Object.entries(addonPrices)) { if (val) addOns[key] = Number(val); }
-    const reel = reelPrice ? { value: Number(reelPrice) } : undefined;
-    const defaultPrices = JSON.stringify({ coverage, addOns, ...(reel ? { reel } : {}) });
-    try {
-      await upsertTemplate({
-        id: selectedTemplate,
-        typeId: tmpl.typeId, name: tmpl.name, tagline: tmpl.tagline,
-        description: tmpl.description, icon: tmpl.icon, isActive: tmpl.isActive,
-        defaultMaxReels: tmpl.defaultMaxReels,
-        defaultReelPrice: reelPrice ? Number(reelPrice) : tmpl.defaultReelPrice,
-        coverageOptions: safeParse(tmpl.coverageOptions) ?? [],
-        addOnOptions: safeParse(tmpl.addOnOptions) ?? [],
-        defaultPrices,
-      });
-      toast.success("Default prices saved");
-      router.refresh();
-    } catch (e) {
-      toast.error(e instanceof Error ? e.message : "Failed to save");
-    }
-  };
 
   return (
     <div className="flex flex-col gap-3">
@@ -511,63 +469,113 @@ function PricesEditor({ templates }: { templates: Template[] }) {
         ))}
       </div>
 
-      {tmpl && (
-        <div className="rounded-xl border p-4 flex flex-col gap-6">
-          <div>
-            <h3 className="text-sm font-medium mb-3">Coverage Prices</h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {COVERAGE_IDS.map((cid) => (
-                <div key={cid}>
-                  <Label className="text-xs">{COVERAGE_LABELS[cid]}</Label>
-                  <Input
-                    type="number"
-                    className="h-8 text-xs"
-                    placeholder="Price"
-                    value={prices[cid] ?? ""}
-                    onChange={(e) => setPrices({ ...prices, [cid]: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+      {tmpl && <PriceForm key={tmpl.id} template={tmpl} />}
+    </div>
+  );
+}
 
-          <div>
-            <h3 className="text-sm font-medium mb-3">Add-on Prices</h3>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {ADDON_IDS.map((aid) => (
-                <div key={aid}>
-                  <Label className="text-xs">{ADDON_LABELS[aid]}</Label>
-                  <Input
-                    type="number"
-                    className="h-8 text-xs"
-                    placeholder="Price"
-                    value={addonPrices[aid] ?? ""}
-                    onChange={(e) => setAddonPrices({ ...addonPrices, [aid]: e.target.value })}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
+function PriceForm({ template: tmpl }: { template: Template }) {
+  const router = useRouter();
+  const parsed = safeParse<{ coverage?: Record<string, number>; addOns?: Record<string, number>; reel?: { value: number } }>(tmpl.defaultPrices);
+  const [prices, setPrices] = useState<Record<string, string>>(() => {
+    const cov: Record<string, string> = {};
+    if (parsed?.coverage) {
+      for (const [key, val] of Object.entries(parsed.coverage)) cov[key] = String(val);
+    }
+    return cov;
+  });
+  const [addonPrices, setAddonPrices] = useState<Record<string, string>>(() => {
+    const add: Record<string, string> = {};
+    if (parsed?.addOns) {
+      for (const [key, val] of Object.entries(parsed.addOns)) add[key] = String(val);
+    }
+    return add;
+  });
+  const [reelPrice, setReelPrice] = useState(() =>
+    parsed?.reel?.value ? String(parsed.reel.value) : String(tmpl.defaultReelPrice)
+  );
 
-          <div>
-            <h3 className="text-sm font-medium mb-3">Reel Price</h3>
-            <div className="max-w-[200px]">
-              <Label className="text-xs">Price per reel</Label>
+  const save = async () => {
+    const coverage: Record<string, number> = {};
+    const addOns: Record<string, number> = {};
+    for (const [key, val] of Object.entries(prices)) { if (val) coverage[key] = Number(val); }
+    for (const [key, val] of Object.entries(addonPrices)) { if (val) addOns[key] = Number(val); }
+    const reel = reelPrice ? { value: Number(reelPrice) } : undefined;
+    const defaultPrices = JSON.stringify({ coverage, addOns, ...(reel ? { reel } : {}) });
+    try {
+      await upsertTemplate({
+        id: tmpl.id,
+        typeId: tmpl.typeId, name: tmpl.name, tagline: tmpl.tagline,
+        description: tmpl.description, icon: tmpl.icon, isActive: tmpl.isActive,
+        defaultMaxReels: tmpl.defaultMaxReels,
+        defaultReelPrice: reelPrice ? Number(reelPrice) : tmpl.defaultReelPrice,
+        coverageOptions: safeParse(tmpl.coverageOptions) ?? [],
+        addOnOptions: safeParse(tmpl.addOnOptions) ?? [],
+        defaultPrices,
+      });
+      toast.success("Default prices saved");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
+  };
+
+  return (
+    <div className="rounded-xl border p-4 flex flex-col gap-6">
+      <div>
+        <h3 className="text-sm font-medium mb-3">Coverage Prices</h3>
+        <p className="text-xs text-muted-foreground mb-3">Setting a price to 0 will hide this option from the public estimator.</p>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {COVERAGE_IDS.map((cid) => (
+            <div key={cid}>
+              <Label className="text-xs">{COVERAGE_LABELS[cid]}</Label>
               <Input
                 type="number"
                 className="h-8 text-xs"
-                placeholder="6000"
-                value={reelPrice}
-                onChange={(e) => setReelPrice(e.target.value)}
+                placeholder="Price"
+                value={prices[cid] ?? ""}
+                onChange={(e) => setPrices({ ...prices, [cid]: e.target.value })}
               />
             </div>
-          </div>
-
-          <div>
-            <Button onClick={save}>Save Default Prices</Button>
-          </div>
+          ))}
         </div>
-      )}
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium mb-3">Add-on Prices</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {ADDON_IDS.map((aid) => (
+            <div key={aid}>
+              <Label className="text-xs">{ADDON_LABELS[aid]}</Label>
+              <Input
+                type="number"
+                className="h-8 text-xs"
+                placeholder="Price"
+                value={addonPrices[aid] ?? ""}
+                onChange={(e) => setAddonPrices({ ...addonPrices, [aid]: e.target.value })}
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <h3 className="text-sm font-medium mb-3">Reel Price</h3>
+        <div className="max-w-[200px]">
+          <Label className="text-xs">Price per reel</Label>
+          <Input
+            type="number"
+            className="h-8 text-xs"
+            placeholder="6000"
+            value={reelPrice}
+            onChange={(e) => setReelPrice(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div>
+        <Button onClick={save}>Save Default Prices</Button>
+      </div>
     </div>
   );
 }

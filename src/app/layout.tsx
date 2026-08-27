@@ -15,18 +15,18 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Photriya Studios - Photography Booking",
-  description: "Photriya Studios is a premier photography studio in Hyderabad, Telangana with 664+ Google reviews. Book professional photography and videography sessions online.",
+    title: "Mamatha Raj Photography - Photography Booking",
+  description: "Mamatha Raj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
   metadataBase: new URL("https://photoriya.vercel.app"),
   openGraph: {
-title: "Photriya Studios - Photography Booking",
-    description: "Photriya Studios is a premier photography studio in Hyderabad, Telangana with 664+ Google reviews. Book professional photography and videography sessions online.",
-    siteName: "Photriya Studios",
+title: "Mamatha Raj Photography - Photography Booking",
+    description: "Mamatha Raj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
+    siteName: "Mamatha Raj Photography",
     locale: "en_IN",
     type: "website",
-    images: [{ url: "/NAVIBAR.png", width: 386, height: 386 }],
+    images: [{ url: "/logo.png", width: 386, height: 386 }],
   },
-  icons: [{ rel: "icon", url: "/NAVIBAR.png" }],
+  icons: [{ rel: "icon", url: "/logo.png" }],
 };
 
 export default function RootLayout({
@@ -39,7 +39,7 @@ export default function RootLayout({
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="h-screen w-full flex flex-col">
+      <body className="min-h-screen w-full flex flex-col">
         <div className="min-h-0 flex-1 flex flex-col">{children}</div>
         <Footer />
         <Toaster />

@@ -20,6 +20,7 @@ export async function saveEstimateLead(data: {
       clientPhone: data.clientPhone,
       eventType: data.eventType,
       eventName: data.eventName,
+      estimatedDate: data.estimatedDate,
       estimateData: data.estimateData,
     });
     return { success: true };

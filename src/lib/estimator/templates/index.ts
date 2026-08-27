@@ -41,7 +41,7 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
     return dbTemplates.map((t) => {
       const rawCoverage: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
       const rawAddOns: ID[] = safeJson<ID[]>(t.addOnOptions) ?? [];
-      const defaultPrices: Record<string, Record<string, number>> = safeJson(t.defaultPrices) ?? {};
+      const defaultPrices: Record<string, unknown> = safeJson(t.defaultPrices) ?? {};
 
       function toPriceRange(map: Record<string, number> | undefined): Record<ID, PriceRange> {
         const result: Record<ID, PriceRange> = {};
@@ -52,8 +52,9 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         return result;
       }
 
-      const overrideCoverage = toPriceRange(defaultPrices.coverage);
-      const overrideAddOns = toPriceRange(defaultPrices.addOns);
+      const overrideCoverage = toPriceRange(defaultPrices.coverage as Record<string, number> | undefined);
+      const overrideAddOns = toPriceRange(defaultPrices.addOns as Record<string, number> | undefined);
+      const overrideReel = (defaultPrices.reel as { value?: number } | undefined)?.value;
 
       const mergedCoverage: Record<ID, PriceRange> = {
         ...DEFAULT_COVERAGE_PRICES,
@@ -110,7 +111,7 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         addOnOptions,
         defaultCoveragePrices: mergedCoverage,
         defaultAddOnPrices: mergedAddOns,
-        defaultReelPrice: { value: t.defaultReelPrice },
+        defaultReelPrice: { value: overrideReel ?? t.defaultReelPrice },
         defaultMaxReels: t.defaultMaxReels,
         subEvents: subEventDefs,
         album: ALBUM_DEFAULTS,

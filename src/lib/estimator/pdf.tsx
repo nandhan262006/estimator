@@ -29,7 +29,7 @@ let watermarkBase64Cache: string | null | undefined;
 function getWatermarkBase64(): string | null {
   if (watermarkBase64Cache !== undefined) return watermarkBase64Cache;
   try {
-    const imagePath = path.join(process.cwd(), "public", "NAVIBAR.png");
+    const imagePath = path.join(process.cwd(), "public", "logo.png");
     const imageBuffer = fs.readFileSync(imagePath);
     watermarkBase64Cache = `data:image/png;base64,${imageBuffer.toString("base64")}`;
     return watermarkBase64Cache;
@@ -387,7 +387,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
         <Watermark />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
           <View>
-            <Text style={styles.brand}>Photriya Studios</Text>
+            <Text style={styles.brand}>Mamatha Raj Photography</Text>
             <Text style={styles.subtitle}>Event Cost Estimate</Text>
           </View>
           <Text style={styles.date}>{today}</Text>
@@ -451,12 +451,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
             <Text style={styles.disclaimer}>
               Disclaimer: This is only an approximate estimate. The final quotation
               may vary depending on event duration, location, travel, venue
-              restrictions and custom requirements. Please contact Photriya Studios
+              restrictions and custom requirements. Please contact Mamatha Raj Photography
               for a detailed, finalised quote.
             </Text>
 
             <Text style={styles.footer}>
-              Thank you for considering Photriya Studios.
+              Thank you for considering Mamatha Raj Photography.
             </Text>
           </>
         )}
@@ -488,12 +488,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
               <Text style={styles.disclaimer}>
                 Disclaimer: This is only an approximate estimate. The final quotation
                 may vary depending on event duration, location, travel, venue
-                restrictions and custom requirements. Please contact Photriya Studios
+                restrictions and custom requirements. Please contact Mamatha Raj Photography
                 for a detailed, finalised quote.
               </Text>
 
               <Text style={styles.footer}>
-                Thank you for considering Photriya Studios.
+                Thank you for considering Mamatha Raj Photography.
               </Text>
             </>
           )}
@@ -523,12 +523,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
           <Text style={styles.disclaimer}>
             Disclaimer: This is only an approximate estimate. The final quotation
             may vary depending on event duration, location, travel, venue
-            restrictions and custom requirements. Please contact Photriya Studios
+            restrictions and custom requirements. Please contact Mamatha Raj Photography
             for a detailed, finalised quote.
           </Text>
 
           <Text style={styles.footer}>
-            Thank you for considering Photriya Studios.
+            Thank you for considering Mamatha Raj Photography.
           </Text>
         </Page>
       )}

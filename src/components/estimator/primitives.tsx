@@ -30,37 +30,44 @@ export function ToggleChip({
       onClick={onClick}
       aria-pressed={selected}
       className={cn(
-        "flex w-full items-start gap-3 rounded-lg border p-2.5 text-left text-sm transition-all",
+        "group flex w-full items-start gap-3 rounded-xl border p-3.5 text-left text-sm transition-all duration-200",
         selected
-          ? "border-primary bg-primary/5 ring-1 ring-primary"
-          : "border-border hover:border-foreground/30 hover:bg-muted/40",
+          ? "border-primary/40 bg-primary/5 shadow-sm shadow-primary/5"
+          : "border-border hover:border-foreground/20 hover:bg-muted/30 hover:shadow-sm",
         className,
       )}
     >
       {iconKey && (
-        <Icon
-          name={iconKey}
+        <div
           className={cn(
-            "size-4 shrink-0",
-            selected ? "text-primary" : "text-muted-foreground",
+            "flex size-8 shrink-0 items-center justify-center rounded-lg transition-all duration-200",
+            selected
+              ? "bg-primary text-primary-foreground"
+              : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary",
           )}
-        />
+        >
+          <Icon name={iconKey} className="size-4" />
+        </div>
       )}
-      <span className="flex min-w-0 flex-1 flex-col">
+      <span className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
         <span className="truncate font-medium">{label}</span>
         {description && (
-          <span className="line-clamp-2 text-xs text-muted-foreground">
+          <span className="line-clamp-2 text-xs text-muted-foreground leading-relaxed">
             {description}
           </span>
         )}
       </span>
-      {selected ? (
-        <Check className="size-4 shrink-0 text-primary" />
-      ) : priceLabel ? (
-        <span className="shrink-0 whitespace-nowrap text-right text-xs font-medium text-muted-foreground">
-          {priceLabel}
-        </span>
-      ) : null}
+      <div className="shrink-0 pt-0.5">
+        {selected ? (
+          <div className="flex size-6 items-center justify-center rounded-full bg-primary text-primary-foreground">
+            <Check className="size-3.5" strokeWidth={3} />
+          </div>
+        ) : priceLabel ? (
+          <span className="whitespace-nowrap text-right text-xs font-medium text-muted-foreground">
+            {priceLabel}
+          </span>
+        ) : null}
+      </div>
     </button>
   );
 }
@@ -84,7 +91,7 @@ export function Stepper({
 }: StepperProps) {
   return (
     <div
-      className="inline-flex items-center rounded-lg border border-input"
+      className="inline-flex items-center rounded-xl border border-border bg-card"
       role="group"
       aria-label={ariaLabel}
     >
@@ -95,10 +102,11 @@ export function Stepper({
         onClick={() => onChange(Math.max(min, value - 1))}
         disabled={value <= min}
         aria-label="Decrease"
+        className="rounded-l-xl rounded-r-none"
       >
-        <Minus />
+        <Minus className="size-3.5" />
       </Button>
-      <span className="w-10 text-center text-sm font-medium tabular-nums">
+      <span className="w-12 text-center text-sm font-semibold tabular-nums border-x border-border">
         {value}
         {suffix}
       </span>
@@ -109,8 +117,9 @@ export function Stepper({
         onClick={() => onChange(Math.min(max, value + 1))}
         disabled={value >= max}
         aria-label="Increase"
+        className="rounded-r-xl rounded-l-none"
       >
-        <Plus />
+        <Plus className="size-3.5" />
       </Button>
     </div>
   );

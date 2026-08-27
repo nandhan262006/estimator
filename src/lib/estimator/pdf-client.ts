@@ -20,7 +20,7 @@ export async function downloadEstimatePdf(state: EstimatorState): Promise<void> 
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "photriya-estimate.pdf";
+  a.download = "mamatha-raj-estimate.pdf";
   document.body.appendChild(a);
   a.click();
   a.remove();

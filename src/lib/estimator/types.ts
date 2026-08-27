@@ -1,5 +1,5 @@
 /**
- * Core domain types for the Photriya Studios Event Cost Estimator.
+ * Core domain types for the Mamatha Raj Photography Event Cost Estimator.
  *
  * Everything here is plain serializable data (no functions) so that templates
  * can later be hydrated from a database or Sanity CMS without changing the

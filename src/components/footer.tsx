@@ -11,20 +11,27 @@ const socialLinks = [
 
 export function Footer() {
   return (
-    <footer className="border-t bg-muted/30">
-      <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 sm:flex-row sm:justify-between">
-        <Link href="/" className="flex items-center">
-          <Image src="/NAVIBAR.png" alt="Photriya Studios" width={40} height={40} />
+    <footer className="border-t bg-muted/20">
+      <div className="mx-auto flex max-w-7xl flex-col items-center gap-6 px-6 py-10 sm:flex-row sm:justify-between">
+        <Link href="/" className="flex items-center gap-3 group">
+          <Image
+            src="/logo.png"
+            alt="Mamatha Raj Photography"
+            width={36}
+            height={36}
+            className="transition-transform duration-300 group-hover:scale-105"
+          />
+          <span className="text-sm font-medium text-foreground">Mamatha Raj Photography</span>
         </Link>
 
-        <div className="flex flex-wrap items-center justify-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-1.5">
           {socialLinks.map((link) => (
             <a
               key={link.name}
               href={link.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center rounded-[9999px] border border-border px-4 py-1.5 text-sm font-medium transition-colors hover:bg-muted hover:text-foreground"
+              className="inline-flex items-center rounded-full px-3.5 py-1.5 text-xs font-medium text-muted-foreground transition-all duration-200 hover:bg-foreground/5 hover:text-foreground"
             >
               {link.name}
             </a>
@@ -32,7 +39,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Photriya Studios
+          &copy; {new Date().getFullYear()} Mamatha Raj Photography
         </p>
       </div>
     </footer>

@@ -8,20 +8,22 @@ export function ClientInfoStep() {
   const { state, dispatch } = useEstimator();
 
   return (
-    <section className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1">
-        <h1 className="font-heading text-2xl font-semibold">
+    <section className="animate-fade-in-up flex flex-col gap-6">
+      <header className="flex flex-col gap-2">
+        <h1 className="text-3xl font-semibold tracking-tight">
           Let&apos;s get started
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground leading-relaxed max-w-md">
           Tell us a bit about yourself so we can follow up with your estimate.
         </p>
       </header>
 
-      <div className="flex flex-col gap-4 rounded-xl border border-border p-4">
-        <div className="flex flex-col gap-1.5">
+      <div className="flex flex-col gap-5 rounded-2xl border border-border bg-card p-6 shadow-sm">
+        <div className="flex flex-col gap-2">
           <label htmlFor="clientName" className="flex items-center gap-2 text-sm font-medium">
-            <User className="size-4 text-muted-foreground" />
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+              <User className="size-3.5 text-primary" />
+            </div>
             Your Name
             <span className="text-destructive">*</span>
           </label>
@@ -29,6 +31,7 @@ export function ClientInfoStep() {
             id="clientName"
             required
             placeholder="Enter your full name"
+            className="h-11 rounded-xl"
             value={state.clientName}
             onChange={(e) =>
               dispatch({
@@ -40,9 +43,11 @@ export function ClientInfoStep() {
           />
         </div>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-2">
           <label htmlFor="clientPhone" className="flex items-center gap-2 text-sm font-medium">
-            <Phone className="size-4 text-muted-foreground" />
+            <div className="flex size-7 items-center justify-center rounded-lg bg-primary/10">
+              <Phone className="size-3.5 text-primary" />
+            </div>
             Phone Number
             <span className="text-destructive">*</span>
           </label>
@@ -53,6 +58,7 @@ export function ClientInfoStep() {
             required
             maxLength={10}
             placeholder="10-digit phone number"
+            className="h-11 rounded-xl"
             value={state.clientPhone}
             onChange={(e) =>
               dispatch({

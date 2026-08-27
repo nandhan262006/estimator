@@ -1,17 +1,26 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check } from "lucide-react";
+import { toast } from "sonner";
 import { markEstimateComplete } from "@/lib/estimator/lead-actions";
 
 export function MarkCompleteButton({ id, currentStatus }: { id: number; currentStatus: string }) {
   const [status, setStatus] = useState(currentStatus);
+  const router = useRouter();
 
   if (status === "completed") return null;
 
   async function handleClick() {
-    setStatus("completed");
-    await markEstimateComplete(id);
+    try {
+      const result = await markEstimateComplete(id);
+      if (result?.success === false) throw new Error("Server action failed");
+      setStatus("completed");
+      router.refresh();
+    } catch {
+      toast.error("Failed to mark as complete. Please try again.");
+    }
   }
 
   return (
