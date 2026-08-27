@@ -2,11 +2,8 @@ import Link from "next/link";
 import Image from "next/image";
 
 const socialLinks = [
-  { name: "Instagram", url: "https://www.instagram.com/photriyavenky/" },
-  { name: "X", url: "https://x.com/PhotriyaVenky" },
+  { name: "Instagram", url: "https://www.instagram.com/mamatha__raj.photography/" },
   { name: "Facebook", url: "https://www.facebook.com/PhotriyaPhotography/" },
-  { name: "Pinterest", url: "https://in.pinterest.com/photriya/" },
-  { name: "YouTube", url: "https://www.youtube.com/@PhotriyaVenky" },
 ];
 
 export function Footer() {

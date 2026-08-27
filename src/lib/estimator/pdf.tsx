@@ -23,18 +23,18 @@ import type {
   EventTemplate,
 } from "./types";
 
-// Load watermark image as base64
-let watermarkBase64Cache: string | null | undefined;
+// Load logo image as base64
+let logoBase64Cache: string | null | undefined;
 
-function getWatermarkBase64(): string | null {
-  if (watermarkBase64Cache !== undefined) return watermarkBase64Cache;
+function getLogoBase64(): string | null {
+  if (logoBase64Cache !== undefined) return logoBase64Cache;
   try {
     const imagePath = path.join(process.cwd(), "public", "logo.png");
     const imageBuffer = fs.readFileSync(imagePath);
-    watermarkBase64Cache = `data:image/png;base64,${imageBuffer.toString("base64")}`;
-    return watermarkBase64Cache;
+    logoBase64Cache = `data:image/png;base64,${imageBuffer.toString("base64")}`;
+    return logoBase64Cache;
   } catch {
-    watermarkBase64Cache = null;
+    logoBase64Cache = null;
     return null;
   }
 }
@@ -134,12 +134,10 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
     textAlign: "center",
   },
-  watermark: {
-    position: "absolute",
-    top: "40%",
-    left: "25%",
-    width: "50%",
-    opacity: 0.08,
+  headerLogo: {
+    width: 30,
+    height: 20,
+    marginRight: 10,
   },
 });
 
@@ -150,12 +148,12 @@ interface PdfProps {
   deliverableTexts: string[];
 }
 
-function Watermark() {
-  const watermarkBase64 = getWatermarkBase64();
+function HeaderLogo() {
+  const logoBase64 = getLogoBase64();
 
-  if (!watermarkBase64) return null;
+  if (!logoBase64) return null;
   // eslint-disable-next-line jsx-a11y/alt-text
-  return <Image src={watermarkBase64} style={styles.watermark} />;
+  return <Image src={logoBase64} style={styles.headerLogo} />;
 }
 
 // A4 dimensions in points
@@ -384,11 +382,13 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
     <Document>
       {/* Page 1: Header + Event Details + Price Breakdown (part 1) */}
       <Page size="A4" style={styles.page}>
-        <Watermark />
         <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <View>
-            <Text style={styles.brand}>Mamatha Raj Photography</Text>
-            <Text style={styles.subtitle}>Event Cost Estimate</Text>
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <HeaderLogo />
+            <View>
+              <Text style={styles.brand}>Mamatha Raj Photography</Text>
+              <Text style={styles.subtitle}>Event Cost Estimate</Text>
+            </View>
           </View>
           <Text style={styles.date}>{today}</Text>
         </View>
@@ -465,7 +465,6 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
       {/* Page 2: Remaining items + Total + Deliverables */}
       {needsSecondPage && (
         <Page size="A4" style={styles.page}>
-          <Watermark />
           <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
           <PdfPriceSection chunks={page2Chunks} />
 
@@ -503,7 +502,6 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
       {/* Page 3: Final remaining items + Total + Deliverables */}
       {page2NeedsThirdPage && (
         <Page size="A4" style={styles.page}>
-          <Watermark />
           <Text style={styles.sectionTitle}>Price breakdown (continued)</Text>
           <PdfPriceSection chunks={page3Chunks} />
 
