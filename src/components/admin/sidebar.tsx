@@ -49,8 +49,8 @@ export function AdminSidebar() {
       >
         <div className="flex items-center justify-between border-b border-border p-4">
           <Link href="/admin" className="flex items-center gap-2.5" onClick={() => setMobileOpen(false)}>
-            <Image src="/logo.png" alt="Mamatha Raj Photography" width={36} height={36} />
-            <span className="text-sm font-semibold">Mamatha Raj</span>
+            <Image src="/logo.png" alt="MamathaRaj Photography" width={36} height={36} />
+            <span className="text-sm font-semibold">MamathaRaj</span>
           </Link>
           <button
             type="button"

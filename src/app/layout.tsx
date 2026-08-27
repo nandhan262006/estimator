@@ -15,13 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "Mamatha Raj Photography - Photography Booking",
-  description: "Mamatha Raj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
+    title: "MamathaRaj Photography - Photography Booking",
+  description: "MamathaRaj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
   metadataBase: new URL("https://photoriya.vercel.app"),
   openGraph: {
-title: "Mamatha Raj Photography - Photography Booking",
-    description: "Mamatha Raj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
-    siteName: "Mamatha Raj Photography",
+title: "MamathaRaj Photography - Photography Booking",
+    description: "MamathaRaj Photography is a premier photography studio in Hyderabad, Telangana. Book professional photography and videography sessions online.",
+    siteName: "MamathaRaj Photography",
     locale: "en_IN",
     type: "website",
     images: [{ url: "/logo.png", width: 386, height: 386 }],

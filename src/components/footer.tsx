@@ -13,12 +13,12 @@ export function Footer() {
         <Link href="/" className="flex items-center gap-3 group">
           <Image
             src="/logo.png"
-            alt="Mamatha Raj Photography"
+            alt="MamathaRaj Photography"
             width={36}
             height={36}
             className="transition-transform duration-300 group-hover:scale-105"
           />
-          <span className="text-sm font-medium text-foreground">Mamatha Raj Photography</span>
+          <span className="text-sm font-medium text-foreground">MamathaRaj Photography</span>
         </Link>
 
         <div className="flex flex-wrap items-center justify-center gap-1.5">
@@ -36,7 +36,7 @@ export function Footer() {
         </div>
 
         <p className="text-xs text-muted-foreground">
-          &copy; {new Date().getFullYear()} Mamatha Raj Photography
+          &copy; {new Date().getFullYear()} MamathaRaj Photography
         </p>
       </div>
     </footer>

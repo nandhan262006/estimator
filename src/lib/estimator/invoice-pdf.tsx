@@ -448,7 +448,7 @@ function InvoicePdfDocument({
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <HeaderLogo />
             <View>
-              <Text style={styles.brand}>Mamatha Raj Photography</Text>
+              <Text style={styles.brand}>MamathaRaj Photography</Text>
               <Text style={styles.docTitle}>Invoice</Text>
             </View>
           </View>
@@ -502,12 +502,12 @@ function InvoicePdfDocument({
               <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
             )}
             <Text style={styles.note}>
-              Thank you for choosing Mamatha Raj Photography. This invoice is
+              Thank you for choosing MamathaRaj Photography. This invoice is
               due upon receipt unless otherwise agreed. Please contact us for
               any clarifications regarding the services listed above.
             </Text>
             <Text style={styles.footer}>
-              Mamatha Raj Photography — {invoiceNumber} — Total: {formatINRPlain(total)}
+              MamathaRaj Photography — {invoiceNumber} — Total: {formatINRPlain(total)}
             </Text>
           </>
         )}
@@ -525,11 +525,11 @@ function InvoicePdfDocument({
                 <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
               )}
               <Text style={styles.note}>
-                Thank you for choosing Mamatha Raj Photography. This invoice is
+                Thank you for choosing MamathaRaj Photography. This invoice is
                 due upon receipt unless otherwise agreed.
               </Text>
               <Text style={styles.footer}>
-                Mamatha Raj Photography — {invoiceNumber}
+                MamathaRaj Photography — {invoiceNumber}
               </Text>
             </>
           )}
@@ -546,11 +546,11 @@ function InvoicePdfDocument({
             <PdfDeliverablesSection deliverableTexts={deliverableTexts} />
           )}
           <Text style={styles.note}>
-            Thank you for choosing Mamatha Raj Photography. This invoice is due
+            Thank you for choosing MamathaRaj Photography. This invoice is due
             upon receipt unless otherwise agreed.
           </Text>
           <Text style={styles.footer}>
-            Mamatha Raj Photography — {invoiceNumber}
+            MamathaRaj Photography — {invoiceNumber}
           </Text>
         </Page>
       )}

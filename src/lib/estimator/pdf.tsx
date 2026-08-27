@@ -386,7 +386,7 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <HeaderLogo />
             <View>
-              <Text style={styles.brand}>Mamatha Raj Photography</Text>
+              <Text style={styles.brand}>MamathaRaj Photography</Text>
               <Text style={styles.subtitle}>Event Cost Estimate</Text>
             </View>
           </View>
@@ -451,12 +451,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
             <Text style={styles.disclaimer}>
               Disclaimer: This is only an approximate estimate. The final quotation
               may vary depending on event duration, location, travel, venue
-              restrictions and custom requirements. Please contact Mamatha Raj Photography
+              restrictions and custom requirements. Please contact MamathaRaj Photography
               for a detailed, finalised quote.
             </Text>
 
             <Text style={styles.footer}>
-              Thank you for considering Mamatha Raj Photography.
+              Thank you for considering MamathaRaj Photography.
             </Text>
           </>
         )}
@@ -487,12 +487,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
               <Text style={styles.disclaimer}>
                 Disclaimer: This is only an approximate estimate. The final quotation
                 may vary depending on event duration, location, travel, venue
-                restrictions and custom requirements. Please contact Mamatha Raj Photography
+                restrictions and custom requirements. Please contact MamathaRaj Photography
                 for a detailed, finalised quote.
               </Text>
 
               <Text style={styles.footer}>
-                Thank you for considering Mamatha Raj Photography.
+                Thank you for considering MamathaRaj Photography.
               </Text>
             </>
           )}
@@ -521,12 +521,12 @@ function EstimatePdfDocument({ template, state, estimate, deliverableTexts }: Pd
           <Text style={styles.disclaimer}>
             Disclaimer: This is only an approximate estimate. The final quotation
             may vary depending on event duration, location, travel, venue
-            restrictions and custom requirements. Please contact Mamatha Raj Photography
+            restrictions and custom requirements. Please contact MamathaRaj Photography
             for a detailed, finalised quote.
           </Text>
 
           <Text style={styles.footer}>
-            Thank you for considering Mamatha Raj Photography.
+            Thank you for considering MamathaRaj Photography.
           </Text>
         </Page>
       )}

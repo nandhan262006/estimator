@@ -90,7 +90,7 @@ function EstimatorShell() {
             href="/"
             className="flex items-center gap-2.5 text-sm font-medium text-foreground transition-opacity hover:opacity-70"
           >
-            <Image src="/logo.png" alt="Mamatha Raj Photography" width={40} height={40} priority />
+            <Image src="/logo.png" alt="MamathaRaj Photography" width={40} height={40} priority />
           </Link>
           <div className="flex flex-col leading-none text-right">
             <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">

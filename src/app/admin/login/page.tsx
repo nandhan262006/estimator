@@ -37,8 +37,8 @@ export default function AdminLoginPage() {
       <div className="w-full max-w-sm mx-auto px-6">
         <div className="animate-fade-in-up rounded-2xl border border-border bg-card p-8 shadow-lg shadow-black/5">
           <div className="flex flex-col items-center gap-3 mb-8">
-            <Image src="/logo.png" alt="Mamatha Raj Photography" width={48} height={48} />
-            <span className="text-lg font-semibold">Mamatha Raj Photography</span>
+            <Image src="/logo.png" alt="MamathaRaj Photography" width={48} height={48} />
+            <span className="text-lg font-semibold">MamathaRaj Photography</span>
           </div>
           <form onSubmit={handleSubmit} className="space-y-5">
             <div className="flex flex-col gap-2">

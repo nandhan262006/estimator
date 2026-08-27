@@ -20,7 +20,7 @@ export default function HomePage() {
           </div>
 
           <h1 className="animate-fade-in-up delay-1 text-5xl font-semibold tracking-tight sm:text-7xl lg:text-8xl leading-[0.95] mb-6">
-            Mamatha Raj
+            MamathaRaj
             <br />
             <span className="text-primary">Photography</span>
           </h1>
