@@ -1,6 +1,7 @@
 import { getEstimateLeads } from "@/lib/estimator/lead-actions";
 import { MarkCompleteButton } from "@/components/admin/mark-complete-button";
 import { DeleteEstimateButton } from "@/components/admin/delete-estimate-button";
+import { GetInvoiceButton } from "@/components/admin/get-invoice-button";
 import { EstimateDetail } from "@/components/admin/estimate-detail";
 
 export const dynamic = "force-dynamic";
@@ -77,6 +78,16 @@ export default async function AdminEstimatesPage() {
                   </td>
                   <td className="p-3 text-sm">
                     <div className="flex items-center gap-2">
+                      <GetInvoiceButton
+                        lead={{
+                          id: lead.id,
+                          clientName: lead.clientName,
+                          clientPhone: lead.clientPhone,
+                          eventName: lead.eventName,
+                          eventType: lead.eventType,
+                          estimateData: lead.estimateData,
+                        }}
+                      />
                       <MarkCompleteButton id={lead.id} currentStatus={lead.status} />
                       <DeleteEstimateButton id={lead.id} />
                     </div>
