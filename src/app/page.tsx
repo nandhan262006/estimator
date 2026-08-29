@@ -15,7 +15,7 @@ export default function HomePage() {
           <div className="animate-fade-in-up">
             <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/80 px-4 py-1.5 mb-8 backdrop-blur-sm">
               <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-              <span className="text-xs font-medium text-muted-foreground">Hyderabad&apos;s trusted studio</span>
+              <span className="text-xs font-medium text-muted-foreground">Khammam&apos;s trusted studio</span>
             </div>
           </div>
 
@@ -27,7 +27,7 @@ export default function HomePage() {
 
           <p className="animate-fade-in-up delay-2 mx-auto max-w-xl text-lg text-muted-foreground leading-relaxed mb-10">
             Premium photography and cinematography for weddings, celebrations,
-            and corporate events across Hyderabad.
+            and corporate events across Khammam.
           </p>
 
           <div className="animate-fade-in-up delay-3 flex flex-col sm:flex-row items-center justify-center gap-4">
