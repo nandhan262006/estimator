@@ -139,6 +139,8 @@ export interface EventTemplate {
   coverageOptions: ID[];
   /** Add-on option ids offered by this event. */
   addOnOptions: ID[];
+  /** Resolved add-on metadata (label/icon/description) keyed by id. */
+  addOnCatalog?: Record<ID, AddOnOption>;
   /** Default per-sub-event coverage prices. */
   defaultCoveragePrices: Record<ID, PriceRange>;
   /** Default per-sub-event add-on prices. */

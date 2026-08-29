@@ -1,4 +1,5 @@
 import type {
+  AddOnOption,
   EstimateBreakdown,
   EventTemplate,
   ID,
@@ -54,7 +55,7 @@ export function calculateEstimate(
       items.push({
         id: `addon-${subEventId}-${addOnId}`,
         group: "Add-on Services",
-        label: labelForAddOn(addOnId),
+        label: labelForAddOn(addOnId, template.addOnCatalog),
         detail: name,
         value: price.value,
       });
@@ -112,6 +113,6 @@ function labelForCoverage(id: ID): string {
   return getCoverageOption(id)?.label ?? id;
 }
 
-function labelForAddOn(id: ID): string {
-  return getAddOnOption(id)?.label ?? id;
+function labelForAddOn(id: ID, catalog?: Record<ID, AddOnOption>): string {
+  return catalog?.[id]?.label ?? getAddOnOption(id)?.label ?? id;
 }

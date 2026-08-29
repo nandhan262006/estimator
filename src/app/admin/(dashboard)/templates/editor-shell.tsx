@@ -12,6 +12,8 @@ import {
   upsertSubEvent,
   deleteSubEvent,
   deleteTemplate,
+  upsertAddOn,
+  deleteAddOn,
 } from "@/lib/admin/template-actions";
 import { DEFAULT_COVERAGE_PRICES, DEFAULT_ADDON_PRICES } from "@/lib/estimator/templates/shared";
 
@@ -25,6 +27,17 @@ interface SubEvent {
   sortOrder: number;
   priceOverrides: string;
   templateId: number;
+}
+
+interface AddOn {
+  id: number;
+  addOnId: string;
+  name: string;
+  description: string;
+  icon: string;
+  defaultPrice: number;
+  isActive: number;
+  sortOrder: number;
 }
 
 interface Template {
@@ -48,10 +61,6 @@ const COVERAGE_IDS = [
   "candid_photography", "cinematic_videography", "drone",
 ];
 
-const ADDON_IDS = [
-  "led_screen", "live_streaming", "ai_gallery", "instant_teaser",
-];
-
 const COVERAGE_LABELS: Record<string, string> = {
   traditional_photography: "Traditional Photography",
   traditional_videography: "Traditional Videography",
@@ -60,25 +69,19 @@ const COVERAGE_LABELS: Record<string, string> = {
   drone: "Drone",
 };
 
-const ADDON_LABELS: Record<string, string> = {
-  led_screen: "LED Screen",
-  live_streaming: "Live Streaming",
-  ai_gallery: "AI Gallery",
-  instant_teaser: "Instant Teaser / Same-Day",
-};
-
 const ICONS = ["heart", "cake", "flower", "baby", "home", "gift", "camera"];
+const ADDON_ICONS = ["wand", "monitor", "radio", "film", "crane", "rotate", "printer", "smile", "camera"];
 
-type Tab = "events" | "subevents" | "reels" | "prices";
+type Tab = "events" | "subevents" | "reels" | "prices" | "addons";
 
-export function EditorShell({ templates }: { templates: Template[] }) {
+export function EditorShell({ templates, addOns }: { templates: Template[]; addOns: AddOn[] }) {
   const [tab, setTab] = useState<Tab>("events");
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex gap-1 border-b pb-1">
-        {(["events", "subevents", "reels", "prices"] as Tab[]).map((t) => (
+      <div className="flex gap-1 border-b pb-1 flex-wrap">
+        {(["events", "subevents", "reels", "prices", "addons"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -90,28 +93,31 @@ export function EditorShell({ templates }: { templates: Template[] }) {
           >
             {t === "events" ? "1. Event Types" :
              t === "subevents" ? "2. Sub-Events" :
-             t === "reels" ? "3. Reels & Albums" : "4. Default Prices"}
+             t === "reels" ? "3. Reels & Albums" :
+             t === "prices" ? "4. Default Prices" : "5. Add-ons"}
           </button>
         ))}
       </div>
 
-      {tab === "events" && <EventsEditor templates={templates} />}
+      {tab === "events" && <EventsEditor templates={templates} addOns={addOns} />}
       {tab === "subevents" && (
         <SubEventsEditor
           templates={templates}
+          addOns={addOns}
           selectedTemplate={selectedTemplate}
           onSelectTemplate={setSelectedTemplate}
         />
       )}
       {tab === "reels" && <ReelsEditor templates={templates} />}
-      {tab === "prices" && <PricesEditor templates={templates} />}
+      {tab === "prices" && <PricesEditor templates={templates} addOns={addOns} />}
+      {tab === "addons" && <AddOnsEditor addOns={addOns} />}
     </div>
   );
 }
 
 const NEW_ID = -1;
 
-function EventsEditor({ templates }: { templates: Template[] }) {
+function EventsEditor({ templates, addOns }: { templates: Template[]; addOns: AddOn[] }) {
   const router = useRouter();
   const [editing, setEditing] = useState<number | null>(null);
   const [form, setForm] = useState({
@@ -205,24 +211,27 @@ function EventsEditor({ templates }: { templates: Template[] }) {
           <div className="sm:col-span-2">
             <Label className="text-xs mb-1 block">Add-on Options</Label>
             <div className="flex flex-wrap gap-x-4 gap-y-1">
-              {ADDON_IDS.map((aid) => (
-                <label key={aid} className="flex items-center gap-1.5 text-xs">
+              {addOns.map((a) => (
+                <label key={a.addOnId} className="flex items-center gap-1.5 text-xs">
                   <input
                     type="checkbox"
                     className="size-3.5"
-                    checked={form.addOnOptions.includes(aid)}
+                    checked={form.addOnOptions.includes(a.addOnId)}
                     onChange={(e) =>
                       setForm({
                         ...form,
                         addOnOptions: e.target.checked
-                          ? [...form.addOnOptions, aid]
-                          : form.addOnOptions.filter((a) => a !== aid),
+                          ? [...form.addOnOptions, a.addOnId]
+                          : form.addOnOptions.filter((x) => x !== a.addOnId),
                       })
                     }
                   />
-                  {ADDON_LABELS[aid]}
+                  {a.name}
                 </label>
               ))}
+              {addOns.length === 0 && (
+                <span className="text-xs text-muted-foreground">No add-ons defined. Add some in the Add-ons tab.</span>
+              )}
             </div>
           </div>
           <div>
@@ -264,23 +273,41 @@ function EventsEditor({ templates }: { templates: Template[] }) {
 const NEW_SUB_ID = -1;
 
 function SubEventsEditor({
-  templates, selectedTemplate, onSelectTemplate,
+  templates, addOns, selectedTemplate, onSelectTemplate,
 }: {
   templates: Template[];
+  addOns: AddOn[];
   selectedTemplate: number | null;
   onSelectTemplate: (id: number | null) => void;
 }) {
   const router = useRouter();
   const tmpl = templates.find((t) => t.id === selectedTemplate);
   const [form, setForm] = useState({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: 0, priceOverrides: "{}" });
+  const [addOnPrices, setAddOnPrices] = useState<Record<string, string>>({});
   const [editing, setEditing] = useState<number | null>(null);
+
+  const templateAddOns = addOns.filter((a) =>
+    tmpl ? (safeParse<string[]>(tmpl.addOnOptions) ?? []).includes(a.addOnId) : false,
+  );
+
+  const readOverridePrices = (priceOverrides: string): Record<string, string> => {
+    const parsed = safeParse<Record<string, unknown>>(priceOverrides);
+    const addOns = (parsed?.addOns ?? {}) as Record<string, { value?: number }>;
+    const result: Record<string, string> = {};
+    for (const [id, v] of Object.entries(addOns)) {
+      if (v && typeof v.value === "number") result[id] = String(v.value);
+    }
+    return result;
+  };
 
   const startEdit = (se?: SubEvent) => {
     if (se) {
       setForm({ subEventId: se.subEventId, name: se.name, description: se.description, defaultSelected: Boolean(se.defaultSelected), maxReels: se.maxReels?.toString() ?? "", sortOrder: se.sortOrder, priceOverrides: se.priceOverrides ?? "{}" });
+      setAddOnPrices(readOverridePrices(se.priceOverrides ?? "{}"));
       setEditing(se.id);
     } else {
       setForm({ subEventId: "", name: "", description: "", defaultSelected: false, maxReels: "", sortOrder: tmpl?.subEvents.length ?? 0, priceOverrides: "{}" });
+      setAddOnPrices({});
       setEditing(NEW_SUB_ID);
     }
   };
@@ -288,6 +315,13 @@ function SubEventsEditor({
   const save = async () => {
     if (!selectedTemplate || !form.subEventId || !form.name) { toast.error("ID and name required"); return; }
     try {
+      const existing = safeParse<Record<string, unknown>>(form.priceOverrides) ?? {};
+      const addOns: Record<string, { value: number }> = {};
+      for (const [id, val] of Object.entries(addOnPrices)) {
+        const n = Number(val);
+        if (val !== "" && Number.isFinite(n)) addOns[id] = { value: n };
+      }
+      const priceOverrides = { ...existing, addOns };
       await upsertSubEvent({
         id: editing === NEW_SUB_ID ? undefined : editing ?? undefined,
         subEventId: form.subEventId,
@@ -296,7 +330,7 @@ function SubEventsEditor({
         defaultSelected: form.defaultSelected,
         maxReels: form.maxReels ? Number(form.maxReels) : null,
         sortOrder: form.sortOrder,
-        priceOverrides: safeParse(form.priceOverrides) ?? {},
+        priceOverrides,
         templateId: selectedTemplate,
       });
       toast.success("Saved");
@@ -353,6 +387,30 @@ function SubEventsEditor({
                 <Label className="text-xs">Max Reels</Label>
                 <Input type="number" value={form.maxReels} onChange={(e) => setForm({ ...form, maxReels: e.target.value })} />
               </div>
+
+              {templateAddOns.length > 0 && (
+                <div className="sm:col-span-2">
+                  <Label className="text-xs mb-1 block">Add-on price overrides (leave blank to use default price)</Label>
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                    {templateAddOns.map((a) => (
+                      <div key={a.addOnId} className="flex items-center gap-2 rounded-lg border p-2">
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate text-xs font-medium">{a.name}</div>
+                          <div className="text-[10px] text-muted-foreground">default ₹{a.defaultPrice || "—"}</div>
+                        </div>
+                        <Input
+                          type="number"
+                          className="h-8 w-24 text-xs"
+                          placeholder="inherit"
+                          value={addOnPrices[a.addOnId] ?? ""}
+                          onChange={(e) => setAddOnPrices({ ...addOnPrices, [a.addOnId]: e.target.value })}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="sm:col-span-2 flex gap-2">
                 <Button size="sm" onClick={save}>Save</Button>
                 <Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
@@ -361,20 +419,25 @@ function SubEventsEditor({
           )}
 
           <div className="grid gap-1">
-            {tmpl.subEvents.map((se) => (
-              <div key={se.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{se.name}</span>
-                  <span className="text-xs text-muted-foreground">({se.subEventId})</span>
-                  {se.defaultSelected && <span className="text-xs text-primary">*default</span>}
-                  {se.maxReels && <span className="text-xs text-muted-foreground">max {se.maxReels} reels</span>}
+            {tmpl.subEvents.map((se) => {
+              const overrides = safeParse<{ addOns?: Record<string, { value?: number }> }>(se.priceOverrides ?? "{}");
+              const overrideCount = Object.keys(overrides?.addOns ?? {}).length;
+              return (
+                <div key={se.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{se.name}</span>
+                    <span className="text-xs text-muted-foreground">({se.subEventId})</span>
+                    {se.defaultSelected && <span className="text-xs text-primary">*default</span>}
+                    {se.maxReels && <span className="text-xs text-muted-foreground">max {se.maxReels} reels</span>}
+                    {overrideCount > 0 && <span className="text-xs text-muted-foreground">{overrideCount} add-on override{overrideCount > 1 ? "s" : ""}</span>}
+                  </div>
+                  <div className="flex gap-1">
+                    <Button variant="ghost" size="xs" onClick={() => startEdit(se)}>Edit</Button>
+                    <Button variant="ghost" size="xs" className="text-destructive" onClick={() => del(se.id)}>×</Button>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button variant="ghost" size="xs" onClick={() => startEdit(se)}>Edit</Button>
-                  <Button variant="ghost" size="xs" className="text-destructive" onClick={() => del(se.id)}>×</Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </>
       )}
@@ -449,7 +512,7 @@ function ReelsEditor({ templates }: { templates: Template[] }) {
   );
 }
 
-function PricesEditor({ templates }: { templates: Template[] }) {
+function PricesEditor({ templates, addOns }: { templates: Template[]; addOns: AddOn[] }) {
   const [selectedTemplate, setSelectedTemplate] = useState<number | null>(null);
   const tmpl = templates.find((t) => t.id === selectedTemplate);
 
@@ -469,12 +532,12 @@ function PricesEditor({ templates }: { templates: Template[] }) {
         ))}
       </div>
 
-      {tmpl && <PriceForm key={tmpl.id} template={tmpl} />}
+      {tmpl && <PriceForm key={tmpl.id} template={tmpl} addOns={addOns} />}
     </div>
   );
 }
 
-function PriceForm({ template: tmpl }: { template: Template }) {
+function PriceForm({ template: tmpl, addOns }: { template: Template; addOns: AddOn[] }) {
   const router = useRouter();
   const parsed = safeParse<{ coverage?: Record<string, number>; addOns?: Record<string, number>; reel?: { value: number } }>(tmpl.defaultPrices);
   const [prices, setPrices] = useState<Record<string, string>>(() => {
@@ -544,15 +607,15 @@ function PriceForm({ template: tmpl }: { template: Template }) {
       <div>
         <h3 className="text-sm font-medium mb-3">Add-on Prices</h3>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {ADDON_IDS.map((aid) => (
-            <div key={aid}>
-              <Label className="text-xs">{ADDON_LABELS[aid]}</Label>
+          {addOns.map((a) => (
+            <div key={a.addOnId}>
+              <Label className="text-xs">{a.name}</Label>
               <Input
                 type="number"
                 className="h-8 text-xs"
-                placeholder="Price"
-                value={addonPrices[aid] ?? ""}
-                onChange={(e) => setAddonPrices({ ...addonPrices, [aid]: e.target.value })}
+                placeholder={a.defaultPrice ? String(a.defaultPrice) : "Price"}
+                value={addonPrices[a.addOnId] ?? ""}
+                onChange={(e) => setAddonPrices({ ...addonPrices, [a.addOnId]: e.target.value })}
               />
             </div>
           ))}
@@ -575,6 +638,117 @@ function PriceForm({ template: tmpl }: { template: Template }) {
 
       <div>
         <Button onClick={save}>Save Default Prices</Button>
+      </div>
+    </div>
+  );
+}
+
+const NEW_ADDON_ID = -1;
+
+function AddOnsEditor({ addOns }: { addOns: AddOn[] }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState<number | null>(null);
+  const [form, setForm] = useState({
+    addOnId: "", name: "", description: "", icon: "wand",
+    defaultPrice: 0, isActive: 1 as number, sortOrder: 0,
+  });
+
+  const startEdit = (a?: AddOn) => {
+    if (a) {
+      setForm({ addOnId: a.addOnId, name: a.name, description: a.description, icon: a.icon, defaultPrice: a.defaultPrice, isActive: a.isActive, sortOrder: a.sortOrder });
+      setEditing(a.id);
+    } else {
+      setForm({ addOnId: "", name: "", description: "", icon: "wand", defaultPrice: 0, isActive: 1, sortOrder: addOns.length });
+      setEditing(NEW_ADDON_ID);
+    }
+  };
+
+  const save = async () => {
+    if (!form.addOnId || !form.name) { toast.error("ID and name required"); return; }
+    try {
+      await upsertAddOn({
+        id: editing === NEW_ADDON_ID ? undefined : editing ?? undefined,
+        addOnId: form.addOnId,
+        name: form.name,
+        description: form.description,
+        icon: form.icon,
+        defaultPrice: Number(form.defaultPrice) || 0,
+        isActive: form.isActive,
+        sortOrder: form.sortOrder,
+      });
+      toast.success("Saved");
+      setEditing(null);
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to save");
+    }
+  };
+
+  const del = async (id: number) => {
+    if (!confirm("Delete this add-on? It will be removed from all event types.")) return;
+    try {
+      await deleteAddOn(id);
+      toast.success("Deleted");
+      router.refresh();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Failed to delete");
+    }
+  };
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-2">
+        <Button onClick={() => startEdit()} size="sm">+ New Add-on</Button>
+      </div>
+
+      {editing !== null && (
+        <div className="rounded-xl border p-4 grid gap-3 sm:grid-cols-2">
+          <div><Label className="text-xs">ID (slug)</Label><Input value={form.addOnId} onChange={(e) => setForm({ ...form, addOnId: e.target.value })} placeholder="e.g. photo_booth" /></div>
+          <div><Label className="text-xs">Name</Label><Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+          <div className="sm:col-span-2"><Label className="text-xs">Description</Label><Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} /></div>
+          <div>
+            <Label className="text-xs">Icon</Label>
+            <select className="flex h-9 w-full rounded-lg border border-input bg-background px-3 py-1 text-sm" value={form.icon} onChange={(e) => setForm({ ...form, icon: e.target.value })}>
+              {ADDON_ICONS.map((i) => <option key={i} value={i}>{i}</option>)}
+            </select>
+          </div>
+          <div>
+            <Label className="text-xs">Default price (₹)</Label>
+            <Input type="number" value={form.defaultPrice} onChange={(e) => setForm({ ...form, defaultPrice: Number(e.target.value) })} />
+          </div>
+          <div className="flex items-center gap-2">
+            <input type="checkbox" id="aa" checked={Boolean(form.isActive)} onChange={(e) => setForm({ ...form, isActive: e.target.checked ? 1 : 0 })} className="size-4" />
+            <Label htmlFor="aa" className="text-xs">Active</Label>
+          </div>
+          <div>
+            <Label className="text-xs">Sort order</Label>
+            <Input type="number" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: Number(e.target.value) })} />
+          </div>
+          <div className="sm:col-span-2 flex gap-2">
+            <Button size="sm" onClick={save}>Save</Button>
+            <Button size="sm" variant="outline" onClick={() => setEditing(null)}>Cancel</Button>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-1">
+        {addOns.map((a) => (
+          <div key={a.id} className="flex items-center justify-between rounded-lg border p-2 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-medium">{a.name}</span>
+              <span className="text-xs text-muted-foreground">({a.addOnId})</span>
+              <span className="text-xs text-muted-foreground">₹{a.defaultPrice}</span>
+              {!a.isActive && <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">Inactive</span>}
+            </div>
+            <div className="flex gap-1">
+              <Button variant="ghost" size="xs" onClick={() => startEdit(a)}>Edit</Button>
+              <Button variant="ghost" size="xs" className="text-destructive" onClick={() => del(a.id)}>×</Button>
+            </div>
+          </div>
+        ))}
+        {addOns.length === 0 && (
+          <p className="text-sm text-muted-foreground">No add-ons yet. Click &quot;+ New Add-on&quot; to create one.</p>
+        )}
       </div>
     </div>
   );

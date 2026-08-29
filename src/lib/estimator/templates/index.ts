@@ -1,7 +1,8 @@
-import type { EventTemplate, ID, PriceRange } from "../types";
+import type { AddOnOption, EventTemplate, ID, PriceRange } from "../types";
 import { db } from "@/lib/db";
-import { eventTemplate, subEvent } from "@/lib/db/schema";
+import { eventTemplate, subEvent, addOn } from "@/lib/db/schema";
 import { eq, asc } from "drizzle-orm";
+import { ADD_ON_OPTIONS } from "../catalog";
 import {
   deliverableRulesFor,
   weddingDeliverableRules,
@@ -38,6 +39,24 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
 
     const allSubEvents = await db.select().from(subEvent).orderBy(asc(subEvent.sortOrder));
 
+    // Build the add-on catalog from the DB (falling back to hardcoded entries
+    // so ids that predate the catalog still resolve a label/icon).
+    const dbAddOns = await db.select().from(addOn).where(eq(addOn.isActive, 1)).orderBy(asc(addOn.sortOrder));
+    const addOnCatalog: Record<ID, AddOnOption> = {};
+    const catalogDefaultAddOns: Record<ID, PriceRange> = {};
+    for (const a of dbAddOns) {
+      addOnCatalog[a.addOnId] = {
+        id: a.addOnId,
+        label: a.name,
+        icon: a.icon,
+        description: a.description,
+      };
+      if (a.defaultPrice > 0) catalogDefaultAddOns[a.addOnId] = { value: a.defaultPrice };
+    }
+    for (const a of ADD_ON_OPTIONS) {
+      if (!addOnCatalog[a.id]) addOnCatalog[a.id] = a;
+    }
+
     return dbTemplates.map((t) => {
       const rawCoverage: ID[] = safeJson<ID[]>(t.coverageOptions) ?? [];
       const rawAddOns: ID[] = safeJson<ID[]>(t.addOnOptions) ?? [];
@@ -63,6 +82,7 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
 
       const mergedAddOns: Record<ID, PriceRange> = {
         ...DEFAULT_ADDON_PRICES,
+        ...catalogDefaultAddOns,
         ...overrideAddOns,
       };
 
@@ -98,8 +118,8 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
 
       const templateDeliverableRules =
         t.typeId === "wedding"
-          ? weddingDeliverableRules(subEventDefs, coverageOptions, addOnOptions)
-          : deliverableRulesFor(coverageOptions, addOnOptions);
+          ? weddingDeliverableRules(subEventDefs, coverageOptions, addOnOptions, addOnCatalog)
+          : deliverableRulesFor(coverageOptions, addOnOptions, addOnCatalog);
 
       return {
         id: t.typeId,
@@ -109,6 +129,7 @@ async function loadDbTemplates(): Promise<EventTemplate[]> {
         icon: t.icon,
         coverageOptions,
         addOnOptions,
+        addOnCatalog,
         defaultCoveragePrices: mergedCoverage,
         defaultAddOnPrices: mergedAddOns,
         defaultReelPrice: { value: overrideReel ?? t.defaultReelPrice },

@@ -56,6 +56,18 @@ export const eventTemplate = sqliteTable("EventTemplate", {
   updatedAt: text("updatedAt").notNull().default("(datetime('now'))"),
 });
 
+export const addOn = sqliteTable("AddOn", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  addOnId: text("addOnId").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  icon: text("icon").notNull().default("wand"),
+  defaultPrice: integer("defaultPrice").notNull().default(0),
+  isActive: integer("isActive").notNull().default(1),
+  sortOrder: integer("sortOrder").notNull().default(0),
+  createdAt: text("createdAt").notNull().default("(datetime('now'))"),
+});
+
 export const subEvent = sqliteTable("SubEvent", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   subEventId: text("subEventId").notNull(),

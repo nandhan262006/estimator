@@ -4,7 +4,9 @@ import { drizzle } from "drizzle-orm/libsql";
 import * as schema from "../src/lib/db/schema";
 
 const url = process.env.DATABASE_URL || "file:./dev.db";
-const client = createClient({ url });
+const client = url.startsWith("libsql://")
+  ? createClient({ url, authToken: process.env.TURSO_AUTH_TOKEN })
+  : createClient({ url });
 const db = drizzle(client, { schema });
 
 const COVERAGE_IDS = [
@@ -20,6 +22,13 @@ const ADDON_IDS = [
   "live_streaming",
   "ai_gallery",
   "instant_teaser",
+];
+
+const DEFAULT_ADDONS = [
+  { addOnId: "led_screen", name: "LED Screen", icon: "monitor", description: "Large LED wall for live playback and visuals at the venue.", defaultPrice: 25000, sortOrder: 1 },
+  { addOnId: "live_streaming", name: "Live Streaming", icon: "radio", description: "Broadcast the event live for remote family and friends.", defaultPrice: 15000, sortOrder: 2 },
+  { addOnId: "ai_gallery", name: "AI Gallery", icon: "wand", description: "AI-powered event gallery with smart photo curation.", defaultPrice: 25000, sortOrder: 3 },
+  { addOnId: "instant_teaser", name: "Instant Teaser or Same-Day Teaser", icon: "film", description: "A quick highlight teaser or same-day edit screened at the event.", defaultPrice: 20000, sortOrder: 4 },
 ];
 
 const defaultPrices = JSON.stringify({
@@ -39,6 +48,12 @@ const defaultPrices = JSON.stringify({
 });
 
 async function main() {
+  const existingAddOns = await db.select().from(schema.addOn).limit(1);
+  if (existingAddOns.length === 0) {
+    await db.insert(schema.addOn).values(DEFAULT_ADDONS);
+    console.log("Add-ons seeded.");
+  }
+
   const existing = await db.select().from(schema.eventTemplate).limit(1);
   if (existing.length > 0) {
     console.log("Database already seeded.");

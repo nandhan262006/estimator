@@ -79,6 +79,14 @@ const ADDON_DELIVERABLE_LABELS: Record<ID, string> = {
   instant_teaser: "Instant teaser highlight or same-day edit",
 };
 
+function addonDeliverableLabel(
+  id: ID,
+  catalog?: Record<ID, { label: string }>,
+): string | undefined {
+  if (catalog?.[id]) return catalog[id].label;
+  return ADDON_DELIVERABLE_LABELS[id];
+}
+
 const DELIVERABLE_GROUP_COVERAGE = "Photography & Videography";
 const DELIVERABLE_GROUP_ADDONS = "Add-on Services";
 const DELIVERABLE_GROUP_EXTRAS = "Reels & Albums";
@@ -92,6 +100,7 @@ const CINEMATIC_EVENT_LABELS: Record<ID, string> = {
 export function deliverableRulesFor(
   coverageIds: ID[],
   addonIds: ID[],
+  addonCatalog?: Record<ID, { label: string }>,
 ): DeliverableRule[] {
   const rules: DeliverableRule[] = [];
 
@@ -142,7 +151,7 @@ export function deliverableRulesFor(
   }
 
   for (const id of addonIds) {
-    const label = ADDON_DELIVERABLE_LABELS[id];
+    const label = addonDeliverableLabel(id, addonCatalog);
     if (!label) continue;
     rules.push({
       id: `deliv-addon-${id}`,
@@ -180,6 +189,7 @@ export function weddingDeliverableRules(
   subEvents: SubEventDef[],
   coverageIds: ID[],
   addonIds: ID[],
+  addonCatalog?: Record<ID, { label: string }>,
 ): DeliverableRule[] {
   const rules: DeliverableRule[] = [];
 
@@ -237,7 +247,7 @@ export function weddingDeliverableRules(
   }
 
   for (const id of addonIds) {
-    const label = ADDON_DELIVERABLE_LABELS[id];
+    const label = addonDeliverableLabel(id, addonCatalog);
     if (!label) continue;
     rules.push({
       id: `deliv-addon-${id}`,

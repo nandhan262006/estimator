@@ -103,7 +103,7 @@ export function AddOnStep() {
                 <div className="flex flex-col gap-3 border-t p-3">
                   <div className="grid gap-2 sm:grid-cols-2">
                     {template.addOnOptions.map((id) => {
-                      const opt = getAddOnOption(id);
+                      const opt = template.addOnCatalog?.[id] ?? getAddOnOption(id);
                       if (!opt) return null;
                       const price = addOnPrice(template, subId, id, subMap);
                       return (
