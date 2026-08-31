@@ -59,7 +59,10 @@ function EstimatorShell() {
   const canProceed = (() => {
     switch (state.step) {
       case 0:
-        return state.clientName.trim().length > 0 && state.clientPhone.trim().length > 0;
+        return (
+          state.clientName.trim().length > 0 &&
+          state.clientPhone.replace(/\D/g, "").length === 10
+        );
       case 1:
         return !!state.eventTypeId;
       case 2:

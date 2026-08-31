@@ -58,7 +58,11 @@ export function ClientInfoStep() {
             required
             maxLength={10}
             placeholder="10-digit phone number"
-            className="h-11 rounded-xl"
+            className={`h-11 rounded-xl ${
+              state.clientPhone.length > 0 && state.clientPhone.replace(/\D/g, "").length !== 10
+                ? "border-destructive focus-visible:ring-destructive/30"
+                : ""
+            }`}
             value={state.clientPhone}
             onChange={(e) =>
               dispatch({
@@ -68,6 +72,12 @@ export function ClientInfoStep() {
               })
             }
           />
+          {state.clientPhone.length > 0 &&
+            state.clientPhone.replace(/\D/g, "").length !== 10 && (
+              <p className="text-xs text-destructive">
+                Please enter a valid 10-digit phone number
+              </p>
+            )}
         </div>
       </div>
     </section>
